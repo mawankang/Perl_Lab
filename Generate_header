@@ -1,0 +1,37 @@
+#!/usr/bin/perl -w
+use strict;
+use POSIX;
+# POSIX::strftime , which implements more character sequences compatible with GNU systems
+# %m The month as a decimal number (range 01 to 12).
+# %d The day of the month as a decimal number (range 01 to 31).
+# %Y The year as a decimal number including the century.
+my $cur_time=strftime("%m/%d/%Y",localtime());
+my $file_name;
+my $tab=" "x4;
+#pass arg to file_name
+if (@ARGV == 1) {
+   $file_name=$ARGV[0];
+  }
+else {
+ &help_message();
+ }
+ 
+open(LOG,">",$file_name) or die "cannot open $file_name for writting \n";
+my str="";
+str.="#!/usr/bin/perl -w\n";
+str.="use strict;\n";
+str.="#----------------------------------------------------";
+str.="#File_name  :  $file_name                          \n";
+str.="#Description:                                      \n
+                                                         \n
+                                                         \n";
+str.="#Author:                                           \n";
+str.="#$cur_time                                         \n";
+str.="#----------------------------------------------------";
+print LOG $str;
+close (LOG);
+print "\nHeader has been generated for $file_name";
+sub help_message{
+print "\n Usage: perl $0 file_name\n\n";
+exit;
+}
