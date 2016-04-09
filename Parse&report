@@ -1,0 +1,49 @@
+#!/usr/bin/perl -w
+use Getopt::long;
+use Spreadsheet::WriteExcel;
+
+#dir def
+my $log_dir="./out";
+
+#file def
+my $report_file="sim_rep.log"
+
+#flag def
+my $debug=0;
+my $help=0;
+my $excel_en=0;
+my info="[INFO] --";
+my $error="[ERROR --]"
+
+#format def
+my $tab=" "x4;
+
+#out_var def
+my @pass_cases;
+my @fail_cases;
+my @unknown_cases;
+
+#parse the input option
+GetOptions(
+           'log_dir=s'  ==> \$log_dir,     #The equals sign indicates that this option requires a value. The letter s indicates that this value is an arbitrary string. 
+           'excel!'     ==> \$excel_en,
+           'verbose!'   ==> \$verbose,
+           'debug'      ==> \$debug,
+           'help!'       ==> \$help,       #Now, using --verbose on the command line will enable $verbose, as expected. But it is also allowed to use --noverbose, which will disable $verbose by setting its value to 0. 
+           );
+  #call help_mes
+  &help_message if $help;
+  
+  #call parse_sim
+  &parse_sim_logs($log_dir);
+  
+  #call gen_rpt
+  &gen_report($report_file);
+  
+  #entry sub parse_sim
+  sub parse_sim_logs{
+  }
+  
+  #entry gen_rpt
+  sub gen_report{
+  }
