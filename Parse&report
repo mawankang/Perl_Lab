@@ -40,9 +40,67 @@ GetOptions(
   #call gen_rpt
   &gen_report($report_file);
   
+  #entry sub help
+  sub help_message{
+             print "\nUsage: perl $0 OPTIONS\n\n";
+             print "OPTIONS: \n";
+             print "-"x50."\n";
+             print "${tab}-log-dir dir_name --specify the directory for output log\n";
+             print "${tab}-excel            --generate the log file in excel\n";
+             print "${tab}-help             --print help message\n";
+             print "${tab}-debug/-verbose   --control to output debug infomation\n";
+             print "${tab}-Author:\n"
+             print "-"x50."\n";
+             exit;
+             }
   #entry sub parse_sim
   sub parse_sim_logs{
+  my $sim_dir=shift;
+  print "\n${info} Start to parse the simulation log files in ${sim_dir}";
+  opendir DH,$sim_dir or die "Cannot open $sim_dir\n";
+  
+  #create file list in certain dir
+  #method1:@sim_name = glob ("$sim_dir/*.log");
+  #method2:
+  while(my $name=readdir DH){        #readdir Dirhandle return the next filename in scalar context , and list of rest files in array context
+            $name="${sim_dir}/${name}";
+            push (@sim_files,$names) if $name =~ /\.log$/;
+            }
+  closedir DH;
+  #parse each file in the dir 
+  if(!defined $sim_files[0] || $sim_files[0] =~ /^\s*$/) {
+             print "${error} No obtaining";
+             exit;
+             }    
+ foreach my $sim_file (@sim_files) {
+            my $case_id;
+            my $status;
+            open (SIM, "<", $sim_file) or die "Cannot open ${sim_file}\n";
+            while (defined (my $line = <SIM>)){
+                       chomp $line;
+                       next if $line =~ s/^\s*$/;
+                       $line =~ s/^\s*|\s*$//g;        #delete space 
+                       if($line =~ /^#\s*test_id\s*:\s*(\d+)/) {
+                                  $case_id =$1;
+                       } elsif ($line =~/^#\s*test_status\s*:\s*(\w+)/) {
+                                  $status =$1;
+                                  $status =~ s/^\s*|\s*$//g;
+                                  last;
+                      }
+           }
+           if (defined $case_id && defined $status) {
+               if($status =~ /^ok$/i) {
+                      push (@pass_cases ,$case_id);
+              }elsif ($status =~ /^fail$/i) {
+                      push (@fail_cases,$case_id);
+              }else {
+                      push(unknown_cases,$case_id);
+              }
+           }
+           close(SIM);
   }
+print "${INFO} Complete";
+}
   
   #entry gen_rpt
   sub gen_report{
