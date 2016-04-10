@@ -12,10 +12,10 @@ my $report_file="sim_rep.log"
 my $debug=0;
 my $help=0;
 my $excel_en=0;
-my info="[INFO] --";
-my $error="[ERROR --]"
 
 #format def
+my $info="[INFO] --";
+my $error="[ERROR --]"
 my $tab=" "x4;
 
 #out_var def
@@ -55,13 +55,15 @@ GetOptions(
              }
   #entry sub parse_sim
   sub parse_sim_logs{
+  #obtain file list
   my $sim_dir=shift;
   print "\n${info} Start to parse the simulation log files in ${sim_dir}";
+  
   opendir DH,$sim_dir or die "Cannot open $sim_dir\n";
   
-  #create file list in certain dir
-  #method1:@sim_name = glob ("$sim_dir/*.log");
-  #method2:
+  ##create file list in certain dir
+  ##method1:@sim_name = glob ("$sim_dir/*.log");
+  ##method2:
   while(my $name=readdir DH){        #readdir Dirhandle return the next filename in scalar context , and list of rest files in array context
             $name="${sim_dir}/${name}";
             push (@sim_files,$names) if $name =~ /\.log$/;
@@ -72,7 +74,7 @@ GetOptions(
              print "${error} No obtaining";
              exit;
              }    
- foreach my $sim_file (@sim_files) {
+  foreach my $sim_file (@sim_files) {
             my $case_id;
             my $status;
             open (SIM, "<", $sim_file) or die "Cannot open ${sim_file}\n";
@@ -87,14 +89,14 @@ GetOptions(
                                   $status =~ s/^\s*|\s*$//g;
                                   last;
                       }
-           }
+            }
            if (defined $case_id && defined $status) {
                if($status =~ /^ok$/i) {
                       push (@pass_cases ,$case_id);
               }elsif ($status =~ /^fail$/i) {
                       push (@fail_cases,$case_id);
               }else {
-                      push(unknown_cases,$case_id);
+                      push (@unknown_cases,$case_id);
               }
            }
            close(SIM);
@@ -104,4 +106,25 @@ print "${INFO} Complete";
   
   #entry gen_rpt
   sub gen_report{
+             my $out_file =shift;
+             if (!$excel_en) {
+                        &gen_txt_report($out_file);
+                        }
+             else {
+                        &gen_excel_report($out_file);
+                        }
   }
+
+  sub gen_excel_report {
+             my $out_name =shift;
+             print "Start to generate excel\n";
+             $out_name =~ s/^(.*)\.\w+$/${1}\.xls/;
+             my $excel_out =Spreadsheet::WriteExcel->new($out_name);
+             my $worksheet =$excel_out->add_worksheet();
+             my $format =$excel_out->add_format();
+             my %col;
+             $format->set_bold();
+             $format->set_color('red');
+             $format->set_align('center');
+             my $red_format =$excel_out->add_format
+   }
