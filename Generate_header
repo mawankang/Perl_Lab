@@ -35,3 +35,25 @@ sub help_message{
 print "\n Usage: perl $0 file_name\n\n";
 exit;
 }
+
+#!/bin/tcsh
+# the next line restarts using tclsh \
+exec tclsh "$0" "$*"
+
+#foreach args ${argv} {
+#    ### OverWrite ###
+#    if {[regexp -nocase -- {^-f} ${args}]} {
+#	set  overwrite	"1"
+#
+#    ### block ###
+#    } else {
+#	set target  ${args}
+#    }
+#}
+
+#argu pass step1: exec tclsh $0 $*
+#	        aline args  $0 $* in tcsh with tclsh
+#tips: $* is one string with blank as seperator
+#	$@ is several strings,only bash support
+#tips $* seems have done the translation from ../a* to ../a1 ../a2 ../a3
+#puts "$argv"
