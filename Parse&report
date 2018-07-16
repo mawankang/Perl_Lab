@@ -1624,3 +1624,1001 @@ source -e -v ./user_custom.tcl
 #===============================================================================
     quit
 }
+
+
+
+
+
+##### Start automatically set file path to script directory path.
+set ASTC_scr_name [ info script ] 
+set ASTC_SCR_DIR  [ file dirname $ASTC_scr_name ]
+##### End
+set ASTC_REP_DIR "${rep_ac_dir}/rep_${run_mode}_${COND}_${CHK_TYPE}"
+set ASTC_REP_OPT "-significant_digits 6 -derate -nets -input_pins -nosplit -path_type full_clock_expanded"
+set ASTC_PATH_OPT ""
+#set COND ""
+set ASTC_PATH_MAX "10000"
+set ASTC_REP_MAX "100"
+if {![file isdirectory $ASTC_REP_DIR]} {
+   file mkdir "$ASTC_REP_DIR";
+   echo "Make directory $ASTC_REP_DIR"
+}
+
+set astc_format_val(max) "-10000"
+set astc_format_val(min) "10000"
+set astc_sort_direction(max) "decreasing"
+set astc_sort_direction(min) "increasing"
+set astc_less_or_greater(max) ">"
+set astc_less_or_greater(min) "<"
+source $ASTC_SCR_DIR/proc/astc_path_calc.proc;
+source $ASTC_SCR_DIR/proc/analyze_rep_cmd.proc;
+source $ASTC_SCR_DIR/proc/rep_exec_time.proc;
+set astc_log_splitter_l "#--------------------------------------------------------------------------------------------------"
+set astc_log_splitter_m "#---------------------------------------------------"
+set astc_log_splitter_s "#------------------------------"
+echo "### Start verification for \"$ASTC_SCR_DIR/check/Kobetsu_RX23E_A_DSAD_atc_check.tcl\". \[[date]\]"
+if { [info exists astc_format_val] == 0 } {
+   echo " ---> *** ASTC ERROR0005: Please read astc_config.tcl first."
+}
+#-----------------------------------------------------------
+#-- Start Header settings
+#-----------------------------------------------------------
+   set ASTC_REP_FILE "Kobetsu_RX23E_A_DSAD_${COND}"
+   set astc_check_path_num 0;
+   set astc_check_fail_num 0;
+#-----------------------------------------------------------
+#-- End   Header settings
+#-----------------------------------------------------------
+### Format varibles for calculation
+   ### for "rise_dsad_0_clk_osx4"
+   set rise_dsad_0_clk_osx4_end_setup "$astc_format_val(max)"
+   set rise_dsad_0_clk_osx4_end_hold  "$astc_format_val(max)"
+   set rise_dsad_0_clk_osx4_max   "$astc_format_val(max)"
+   set rise_dsad_0_clk_osx4_min   "$astc_format_val(min)"
+   set rise_dsad_0_clk_osx4_end_setup_err 0
+   set rise_dsad_0_clk_osx4_end_hold_err  0
+   set rise_dsad_0_clk_osx4_max_err   0
+   set rise_dsad_0_clk_osx4_min_err   0
+#----------------------------
+#-- Start get path timing
+#----------------------------
+echo "#--- report results \[[date]\]" > ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep
+echo "#--- report results \[[date]\]" > ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep_worst
+   echo "#--------------------------------------------------------------------------------------------------"
+   echo "#---- get path timing for Path name \"rise_dsad_0_clk_osx4\""
+   echo "#--------------------------------------------------------------------------------------------------"
+   foreach Delay_type { max min } {
+      set astc_path_info "#---- Path name \"rise_dsad_0_clk_osx4_${Delay_type}\" 1 of 1"
+      set astc_rep_info "#---- report_timing -delay_type ${Delay_type}  -from \[ get_pins { pericore/mp200/dsad_0/coretop/kernelpgac/clkctl/clkosx4_reg_reg/Q* }] -through \[get_pins { pericore/mp200/dsad_0/dsad_clk_osx4 }] -rise_to \[get_pins  pericore/anatop/afeh/DS0CLKOSX4 ] $ASTC_REP_OPT $ASTC_PATH_OPT"
+      echo "$astc_log_splitter_l"
+      echo "$astc_path_info"
+      echo "$astc_rep_info"
+      echo "$astc_log_splitter_l"
+      echo "$astc_log_splitter_l" >> ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep
+      echo "$astc_path_info" >> ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep
+      echo "$astc_rep_info" >> ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep
+      echo "$astc_log_splitter_l" >> ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep
+      set ASTC_PATH_NUM_OPT ""
+      set rise_dsad_0_clk_osx4_path_attr(${Delay_type}) [eval "get_timing_path -delay ${Delay_type}  -from \[ get_pins { pericore/mp200/dsad_0/coretop/kernelpgac/clkctl/clkosx4_reg_reg/Q* }] -through \[get_pins { pericore/mp200/dsad_0/dsad_clk_osx4 }] -rise_to \[get_pins  pericore/anatop/afeh/DS0CLKOSX4 ] $ASTC_PATH_OPT $ASTC_PATH_NUM_OPT -include_hierarchical_pins"]
+      if { $rise_dsad_0_clk_osx4_path_attr(${Delay_type}) == "" } {
+         set rise_dsad_0_clk_osx4_path_attr(${Delay_type}) [eval "get_timing_path -delay ${Delay_type}  -from \[ get_pins { pericore/mp200/dsad_0/coretop/kernelpgac/clkctl/clkosx4_reg_reg/Q* }] -through \[get_pins { pericore/mp200/dsad_0/dsad_clk_osx4 }] -rise_to \[get_pins  pericore/anatop/afeh/DS0CLKOSX4 ] $ASTC_PATH_OPT $ASTC_PATH_NUM_OPT -include_hierarchical_pins -slack_lesser_than inf"]
+      }
+      if { $rise_dsad_0_clk_osx4_path_attr(${Delay_type}) == "" } {
+         echo "      ASTC Error: Object path rise_dsad_0_clk_osx4 timing is not reported."
+      }
+      set astc_path_num [sizeof_collection $rise_dsad_0_clk_osx4_path_attr(${Delay_type})]
+      set rise_dsad_0_clk_osx4_dly_tmp2(${Delay_type}) [lindex [lsort -real -$astc_sort_direction($Delay_type) [get_attribute $rise_dsad_0_clk_osx4_path_attr(${Delay_type}) arrival ] ] 0 ]
+      set rise_dsad_0_clk_osx4_start_clk_dly(${Delay_type}) [lindex [get_attribute $rise_dsad_0_clk_osx4_path_attr(${Delay_type}) startpoint_clock_latency -quiet ] 0 ]
+      if { $rise_dsad_0_clk_osx4_path_attr(${Delay_type}) != "" } {
+         if { $astc_path_num > $ASTC_REP_MAX } {
+            set astc_path_num $ASTC_REP_MAX
+            echo "ASTC WARNING0005 : Path route number of Path name \"rise_dsad_0_clk_osx4\" is over $ASTC_REP_MAX."
+            echo "                   Please control report path number by value $ASTC_REP_MAX in astc_config.tcl."
+            echo "                   To avoid disk full, report number of *.rep is automatically reduced to \$ASTC_REP_MAX $ASTC_REP_MAX."
+         }
+         for {set i 1} {$i <= $astc_path_num} {incr i} {
+            echo "### Path count. $i" >> ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep
+            eval "report_timing [index_collection $rise_dsad_0_clk_osx4_path_attr(${Delay_type}) [expr $i-1] ] $ASTC_REP_OPT" >> ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep
+         }; #foreach 
+      } else {
+         echo "---> Object path is not collected." >> ${ASTC_REP_DIR}/${ASTC_REP_FILE}.rep
+      }
+   }; #foreach ($Delay_type)
+   echo "
+   ### Timing information for \"rise_dsad_0_clk_osx4\" 1 of 1."
+   set rise_dsad_0_clk_osx4_end_setup_tmp [lindex [lsort -real -decreasing [get_attribute $rise_dsad_0_clk_osx4_path_attr(max) endpoint_setup_time_value -quiet ]] 0 ]
+   set rise_dsad_0_clk_osx4_end_hold_tmp  [lindex [lsort -real -decreasing [get_attribute $rise_dsad_0_clk_osx4_path_attr(min) endpoint_hold_time_value -quiet ]] 0 ]
+   echo "   end lib setup : ${rise_dsad_0_clk_osx4_end_setup_tmp}"
+   echo "   end lib hold  : ${rise_dsad_0_clk_osx4_end_hold_tmp}"
+   if { [regexp {^[\d.\-e]+$} "$rise_dsad_0_clk_osx4_end_setup_tmp"] == 0 } {
+      echo "ASTC WARNING 0001: End library setup value for\"rise_dsad_0_clk_osx4\" is not collected.\n"
+      set rise_dsad_0_clk_osx4_end_setup_err 1
+   } else {
+      if {$rise_dsad_0_clk_osx4_end_setup_tmp == 0 }  {
+         echo "ASTC WARNING 0002: \"rise_dsad_0_clk_osx4\" end library setup value is zero.\n"
+      };
+      if {$rise_dsad_0_clk_osx4_end_setup < $rise_dsad_0_clk_osx4_end_setup_tmp} {
+         set rise_dsad_0_clk_osx4_end_setup $rise_dsad_0_clk_osx4_end_setup_tmp
+      };
+   };
+   if { [regexp {^[\d.\-e]+$} "$rise_dsad_0_clk_osx4_end_hold_tmp"] == 0 } {
+      echo "ASTC WARNING 0003: End library hold value for \"rise_dsad_0_clk_osx4\" is not collected.\n"
+      set rise_dsad_0_clk_osx4_end_hold_err 1
+   } else {
+      if {$rise_dsad_0_clk_osx4_end_hold_tmp == 0 }  {
+         echo "ASTC WARNING 0004: \"rise_dsad_0_clk_osx4\" end library hold value is zero.\n"
+      };
+      if {$rise_dsad_0_clk_osx4_end_hold < $rise_dsad_0_clk_osx4_end_hold_tmp} {
+         set rise_dsad_0_clk_osx4_end_hold $rise_dsad_0_clk_osx4_end_hold_tmp;
+      };
+   };
+   unset rise_dsad_0_clk_osx4_path_attr(${Delay_type})
+   echo "   max path delay : $rise_dsad_0_clk_osx4_dly_tmp2(max) ns"
+   echo "   min path delay : $rise_dsad_0_clk_osx4_dly_tmp2(min) ns"
+   if { [regexp {^[\d.\-e]+$} "$rise_dsad_0_clk_osx4_dly_tmp2(max)"] == 0 || $rise_dsad_0_clk_osx4_dly_tmp2(max) == $astc_format_val(max) } {
+      echo "   ASTC Error: Max path delay of \"rise_dsad_0_clk_osx4\" is not collected.\n"
+      set rise_dsad_0_clk_osx4_max_err 1
+   } else {
+      if { $rise_dsad_0_clk_osx4_dly_tmp2(max) == 0 } {
+         echo "   ASTC Error: Max path delay is zero.\n"
+      };
+      if {$rise_dsad_0_clk_osx4_max < $rise_dsad_0_clk_osx4_dly_tmp2(max)} {
+         set rise_dsad_0_clk_osx4_max $rise_dsad_0_clk_osx4_dly_tmp2(max);
+      };
+   };
+   if { [regexp {^[\d.\-e]+$} "$rise_dsad_0_clk_osx4_dly_tmp2(min)"] == 0 || $rise_dsad_0_clk_osx4_dly_tmp2(min) == $astc_format_val(min)} {
+   echo "   ASTC Error: Min path delay of \"rise_dsad_0_clk_osx4\" is not collected.\n"
+      set rise_dsad_0_clk_osx4_min_err 1
+   } else {
+      if {$rise_dsad_0_clk_osx4_min > $rise_dsad_0_clk_osx4_dly_tmp2(min)} {
+         set rise_dsad_0_clk_osx4_min $rise_dsad_0_clk_osx4_dly_tmp2(min);
+      };
+   };
+   echo "
+   ### Total timing information for \"rise_dsad_0_clk_osx4\""
+   echo "   end lib setup : ${rise_dsad_0_clk_osx4_end_setup}"
+   echo "   end lib hold  : ${rise_dsad_0_clk_osx4_end_hold}"
+   echo "   max path delay : $rise_dsad_0_clk_osx4_max ns"
+   echo "   min path delay : $rise_dsad_0_clk_osx4_min ns"
+   echo "   max start clk delay : $rise_dsad_0_clk_osx4_start_clk_dly(max) ns"
+   echo "   min start clk delay : $rise_dsad_0_clk_osx4_start_clk_dly(min) ns"
+ #----------------------------
+#-- End   get path timing
+#----------------------------
+#----------------------------
+#-- Start judge
+#----------------------------
+   set astc_worst_slack 10000
+   echo "--------------------------------------------------"
+   echo "----- Start Timing check rule \"R_F_dsad_0_clk_osx4_dly\""
+   echo "--------------------------------------------------"
+   set path_err_flag 0
+   echo "   Timing Rule: rise_dsad_0_clk_osx4_max-fall_dsad_0_clk_osx4_min  < [expr 5] ns"
+   if { ${rise_dsad_0_clk_osx4_max_err} == 1 } {
+      echo "   ASTC ERROR0001:  rise_dsad_0_clk_osx4_max path delay is not correctly collected."
+      set path_err_flag 1
+   } else {
+      echo "   rise_dsad_0_clk_osx4_max = ${rise_dsad_0_clk_osx4_max} ns"
+   }
+   if { ${fall_dsad_0_clk_osx4_min_err} == 1 } {
+      echo "   ASTC ERROR0001: fall_dsad_0_clk_osx4_min path delay is not correctly collected."
+      set path_err_flag 1
+   } else {
+      echo "   fall_dsad_0_clk_osx4_min = ${fall_dsad_0_clk_osx4_min} ns"
+   }
+   if { $path_err_flag == 1} {
+      echo "   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+      echo "   X   ASTC ERROR0003: A part of delay for Timing rule is not collected."
+      echo "   XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+      incr astc_check_fail_num
+      echo "Kobetsu_RX23E_A_DSAD	,R_F_dsad_0_clk_osx4_dly	,Path fail	,NG,rise_dsad_0_clk_osx4_max-fall_dsad_0_clk_osx4_min  < [expr 5],\" $rise_dsad_0_clk_osx4_max - $fall_dsad_0_clk_osx4_min < [expr 5]\"" >> $ASTC_REP_DIR/Chk_summary_${COND}.csv
+   } else {
+      set calc_result [expr  $rise_dsad_0_clk_osx4_max - $fall_dsad_0_clk_osx4_min]
+      echo "   Left side of timing rule: rise_dsad_0_clk_osx4_max-fall_dsad_0_clk_osx4_min = $calc_result ns"
+      echo "   ###################################"
+      if { $calc_result < [expr 5] } {
+         echo "   #  Timing Check result: OK.       #"
+         incr astc_check_path_num
+         set astc_judge "OK"
+      } else { 
+         echo "   #  Timing Check result: NG.       #"
+         incr astc_check_fail_num
+         set astc_judge "NG"
+      }
+      echo "   ###################################"
+      set astc_slack [expr [expr 5] - $calc_result ]
+      echo "   Timing slack is [expr 5] - ($calc_result) = $astc_slack ns"
+      echo "Kobetsu_RX23E_A_DSAD	,R_F_dsad_0_clk_osx4_dly	,$astc_slack	,$astc_judge,rise_dsad_0_clk_osx4_max-fall_dsad_0_clk_osx4_min  < [expr 5],\" $rise_dsad_0_clk_osx4_max - $fall_dsad_0_clk_osx4_min < [expr 5]\"" >> $ASTC_REP_DIR/Chk_summary_${COND}.csv
+      if { $astc_worst_slack > $astc_slack } {
+         set astc_worst_slack $astc_slack
+      }
+   }
+   echo "--------------------------------------------------"
+   echo "----- End   Timing check rule \"R_F_dsad_0_clk_osx4_dly\""
+   echo "--------------------------------------------------"
+  
+proc get_obj_class { obj } {
+   set class ""
+   set class_cnt 0
+   foreach obj_split [split $obj { +}] {
+      if { [ regexp {^\$\{*([[:alnum:]_]+)\}*} $obj_split foo obj_name ] == 1 } {
+         eval global $obj_name;
+      }
+   }
+   set class_clk  [lindex [get_attribute [eval "get_clocks $obj -quiet "] object_class] 0]
+   set class_port [lindex [get_attribute [eval "get_ports  $obj -quiet "] object_class] 0]
+   set class_pin  [lindex [get_attribute [eval "get_pins   $obj -quiet "] object_class] 0]
+   set class_net  [lindex [get_attribute [eval "get_nets   $obj -quiet "] object_class] 0]
+   if { $class_clk != "" } {
+      set class $class_clk
+      incr class_cnt
+   }
+   if { $class_port != "" } {
+      set class $class_port
+      incr class_cnt
+   }
+   if { $class_pin != "" } {
+      set class $class_pin
+      incr class_cnt
+   }
+   if { $class_net != "" } {
+      set class $class_net
+      incr class_cnt
+   }
+
+   if { $class_cnt > 1 } {
+      echo "  ---> Warning0001: class of object \"$obj\" is more than one. Please indicate class clearly."
+   } elseif { $class_cnt == 0 } {
+      error  "Class of object \"$obj\" is not found.\n       Does the object name \"$obj\" exist?"
+   }
+   return $class;
+}
+
+proc get_path_status { file_path } {
+   set path_status_num 0;
+   set path_status "";
+   set fileID [ open $file_path ]
+   while {! [eof $fileID] } {
+      set rep_line [gets $fileID]
+      if { [regexp {No constrained paths.} $rep_line] == 1 } {
+         set path_status_num 1;
+      } elseif { [regexp {No path.|No Paths.} $rep_line] == 1 } {
+         set path_status_num 2;
+      } elseif { [regexp {Path is unconstrained.} $rep_line] == 1 } {
+         set path_status_num 3;
+      } elseif { [regexp {Error} $rep_line] == 1 } {
+         set path_status_num 4;
+      } elseif { [regexp {slack} $rep_line] == 1 } {
+         set path_status_num 5;
+      } else {
+      }
+   }
+   close $fileID
+
+
+   if { $path_status_num == 5 } {
+      set path_status "Constrainted"
+   } elseif { $path_status_num == 1 } {
+      set path_status "No const"
+   } elseif { $path_status_num == 2 } {
+      set path_status "No path"
+   } elseif { $path_status_num == 3 } {
+      set path_status "Unconstrained"
+   } elseif { $path_status_num == 4 } {
+      set path_status "Error"
+   } else {
+       echo "Error0003 : There are no timing reported results in \"$file_path\".";
+   }
+   return $path_status;
+}
+
+
+proc get_port_clk { port io edge dly_type file_path } {
+   set port [get_attribute [eval "get_ports $port"] full_name]
+   set fileID [ open $file_path ]
+   set in_dly_flag 0
+   set dly_status_flag ""
+   set port_hit_flag 0
+   set port_clocks ""
+   set col_base 0
+   while {! [eof $fileID] } {
+      set col 0
+      set rep_line [gets $fileID]
+      set port_rep [lindex $rep_line 0];
+      if { $port_rep == "Output" } {
+         set dly_status_flag "O";
+      } elseif { $port_rep == "Input" } {
+         set dly_status_flag "I";
+      } 
+      if { $dly_status_flag == $io } {
+          if { $port_rep == $port } {
+             incr port_hit_flag;
+             set col_base 1;
+          } elseif { [regexp {^[\d\.]+$} $port_rep ] == 1} {
+             incr port_hit_flag;
+             set col_base 0;
+          } else {
+             set port_hit_flag 0;
+          }
+      }
+      
+      if { $port_hit_flag > 0 } {
+         if { $dly_type == "max" } {
+            set col_base [expr $col_base + 2 ];
+            if { [regexp {rise}  $edge ] ==  1 } {
+               if { [regexp {^[\d\.]+$} [lindex $rep_line $col_base ] ] == 1 } {
+                   set port_clocks "$port_clocks [lindex $rep_line [expr $col_base+2]]"
+               }
+            } elseif { [regexp {fall}  $edge ] ==  1 } {
+               if { [regexp {^[\d\.]+$} [lindex $rep_line [expr $col_base+1] ] ] == 1 } {
+                   set port_clocks "$port_clocks [lindex $rep_line [expr $col_base+2]]"
+               }
+            } else {
+               if { [regexp {^[\d\.]+$} [lindex $rep_line $col_base ] ] == 1 || [regexp {^[\d\.]+$} [lindex $rep_line [expr $col_base+1] ] ] == 1 } {
+                   set port_clocks "$port_clocks [lindex $rep_line [expr $col_base+2]]"
+               }
+            }	
+         } elseif { $dly_type == "min" } {
+            set col_base [expr $col_base + 1 ];
+            if { [regexp {rise}  $edge ] ==  1 } {
+               if { [regexp {^[\d\.]+$} [lindex $rep_line $col_base ] ] == 1 } {
+                   set port_clocks "$port_clocks [lindex $rep_line [expr $col_base+2]]"
+               }
+            } elseif { [regexp {fall}  $edge ] ==  1 } {
+               if { [regexp {^[\d\.]+$} [lindex $rep_line [expr $col_base+1] ] ] == 1 } {
+                   set port_clocks "$port_clocks [lindex $rep_line [expr $col_base+2]]"
+               }
+            } else {
+               if { [regexp {^[\d\.]+$} [lindex $rep_line $col_base ] ] == 1 || [regexp {^[\d\.]+$} [lindex $rep_line [expr $col_base+1] ] ] == 1 } {
+                   set port_clocks "$port_clocks [lindex $rep_line [expr $col_base+2]]"
+               }
+            }	
+         }
+      }
+   }
+   return $port_clocks;
+}
+
+proc check_inst_disable { inst file_path } {
+
+   while {! [eof $fileID] } {
+      set rep_line [gets $fileID]
+      if { [regexp {^$inst\s+} $rep_line ] == 1 } {
+         echo "debug4 $rep_line"
+      }
+   }
+}
+
+proc analyze_rep_cmd {rep_cmd} {
+   global  timing_report_unconstrained_paths;
+   set out_dir ".\/log_analyze_rep_cmd";
+   set dly_type "max";
+   set point_cnt 0;
+   if { [file exists $out_dir] } {
+       if { [file isdirectory $out_dir] } {
+
+       } else {
+          echo "  ---> Error0001 : file \"$out_dir\" exist.Directory for analyze_rep_cmd couldn't be generated";
+       }
+   } else {
+       file mkdir $out_dir;
+   }
+
+   file delete -force $out_dir/*
+
+   set path_status "";
+   set thr_cnt 0;
+   set cmd_cnt 0;
+   set bracket_cnt 0;
+   set bracket_flag 0;
+   set from_point_flag 0;
+   set from_class "";
+   set from_point "";
+   set from_edge "";
+   set to_point_flag 0;
+   set to_class "";
+   set to_point "";
+   set to_edge "";
+   set thr_point_flag 0;
+   set thr_point(0) ""
+   set from_string "";
+   set to_string "";
+   set thr_string "";
+   set rep_opt_other "";
+   set rep_opt_all "";
+   set bracket 0
+   set rep_cmd_split_merge ""
+
+   set rep_cmd_tmp ""
+   foreach rep_cmd_split [split $rep_cmd { +}] {
+      if { [ regexp {^\$\{*([[:alnum:]_]+)\}*} $rep_cmd_split foo cmd_name ] == 1 } {
+         upvar $cmd_name val_local;
+         set rep_cmd_tmp "$rep_cmd_tmp$val_local "
+      } else {
+         set rep_cmd_tmp "$rep_cmd_tmp$rep_cmd_split "
+      }
+   }
+   
+   foreach rep_cmd_split [split $rep_cmd_tmp { +}] {
+      if { $rep_cmd_split != "" } {
+         set rep_cmd_split_merge "$rep_cmd_split_merge $rep_cmd_split" 
+
+         if { [regexp -all {\[} $rep_cmd_split ] > 0 } {
+            set bracket [expr $bracket + [regexp -all {\[} $rep_cmd_split ]];
+         }
+         if { [regexp -all {\]} $rep_cmd_split] > 0 } {
+            set bracket [expr $bracket - [regexp -all {\]} $rep_cmd_split ]];
+         }
+         if { $bracket == 0 } {
+            set cmd_parts_array($cmd_cnt) $rep_cmd_split_merge;
+            incr cmd_cnt;
+            set rep_cmd_split_merge "";
+         }
+      }
+   }
+   set rep_cmd "";
+   for { set i 1 } {$i < $cmd_cnt} { incr i } {
+      set rep_cmd "$rep_cmd $cmd_parts_array($i)";
+   }
+
+   echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%";
+   echo "%%% Analyze indicated path status of the following report command.";
+   echo "%%% \"$rep_cmd\"";
+   echo "%%% This script output information to analyze path.";
+   echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%";
+   echo "### Report files for analysis are temporary output to \"$out_dir\" directory."
+   echo "### These files will be overwritten by next execution."
+   # devide arguments 
+
+   report_disable_timing -nosplit > $out_dir/report_disable_timing.log
+   report_port -input_delay -output_delay -nosplit > $out_dir/report_port.log
+   report_case_analysis -nosplit > $out_dir/report_case_analysis.log
+   eval report_timing $rep_cmd;
+   eval report_timing $rep_cmd > $out_dir/normal.rep;
+   set path_status [get_path_status "$out_dir/normal.rep"];
+   echo "  Report result of Object path	: $path_status.";
+
+echo "### 1. Classify path options"
+
+   if { $path_status == "Constrainted" } {
+      echo "  ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+      echo "  :: Info0001	: OK. The object path report is correctly output."
+      echo "  :: 	      	  There is no need of analysis."
+      echo "  ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+      return;
+   } elseif { $path_status == "Error" } {
+      echo "  Please solve the error of report command itself."
+      return;
+   }
+
+   if { [regexp {report_timing} $cmd_parts_array(0) ] != 1 } {
+       echo "  ---> Error0002 : this procedure must be used with report_timing command. But it is used with \"$cmd_parts_array(0)\" command.";
+   }
+
+   for { set i 0 } {$i < $cmd_cnt} { incr i } {
+      if { $i != 0 } {
+         set rep_opt_all "$rep_opt_all $cmd_parts_array($i)";
+      }
+      if { [regexp {\-from|\-rise_from|-fall_from} $cmd_parts_array($i) from_edge ] == 1 } {
+         set from_point_flag 1;
+      } elseif { [regexp {\-to|\-rise_to|\-fall_to} $cmd_parts_array($i) to_edge  ] == 1 } {
+         set to_point_flag 1;
+      } elseif { [regexp {\-thr|-rise_thr|-fall_thr} $cmd_parts_array($i) thr_edge_tmp ] == 1 } {
+         set thr_point_flag 1;
+         set thr_string "";
+      } elseif { $from_point_flag == 1 } {
+         incr point_cnt;
+         set bracket_cnt [expr $bracket_cnt + [regexp -all {\[} $cmd_parts_array($i)] ];
+         if { $bracket_cnt > 0 } {
+            set bracket_flag 1;
+         }
+         set bracket_cnt [expr $bracket_cnt - [regexp -all {\]} $cmd_parts_array($i)] ];
+         set from_string "$from_string $cmd_parts_array($i)";
+         if { $bracket_cnt == 0 } {
+            if { $bracket_flag == 1 } {
+               set from_point "$from_string";
+            } else {
+               set from_point "$cmd_parts_array($i)";
+            }
+echo "  from	: $from_point"
+            set from_point_flag 0;
+            set from_class [get_obj_class $from_point]
+echo "  from class : $from_class"
+
+         }
+      } elseif { $to_point_flag == 1 } {
+         incr point_cnt;
+         set bracket_cnt [expr $bracket_cnt + [regexp -all {\[} $cmd_parts_array($i)] ];
+         if { $bracket_cnt > 0 } {
+            set bracket_flag 1;
+         }
+         set bracket_cnt [expr $bracket_cnt - [regexp -all {\]} $cmd_parts_array($i)] ];
+         set to_string "$to_string $cmd_parts_array($i)";
+         if { $bracket_cnt == 0 } {
+            if { $bracket_flag == 1 } {
+               set to_point "$to_string";
+            } else {
+               set to_point "$cmd_parts_array($i)";
+            }
+echo "  to	: $to_point"
+            set to_point_flag 0;
+            set to_class [get_obj_class "$to_point"]
+echo "  to   class : $to_class"
+         }
+      } elseif { $thr_point_flag == 1 } {
+         incr point_cnt;
+         set bracket_cnt [expr $bracket_cnt + [regexp -all {\[} $cmd_parts_array($i)] ];
+         if { $bracket_cnt > 0 } {
+            set bracket_flag 1;
+         }
+         set bracket_cnt [expr $bracket_cnt - [regexp -all {\]} $cmd_parts_array($i)] ];
+         set thr_string "$thr_string $cmd_parts_array($i)";
+         if { $bracket_cnt == 0 } {
+            if { $bracket_flag == 1 } {
+               set thr_point($thr_cnt) "$thr_string";
+            } else {
+               set thr_point($thr_cnt) "$cmd_parts_array($i)";
+            }
+            set thr_edge($thr_cnt) $thr_edge_tmp
+            set thr_point_flag 0;
+            set thr_class($thr_cnt) [get_obj_class "$thr_string"];
+echo "  thr$thr_cnt	: $thr_point($thr_cnt)"
+            incr thr_cnt;
+         }
+      } elseif { $i > 0 } {
+         if { [regexp {\-delay_type} $cmd_parts_array([expr $i-1])] == 1 } {
+            set dly_type $cmd_parts_array($i);
+         }
+         set rep_opt_other "$rep_opt_other $cmd_parts_array($i)";
+      }
+   }
+echo "  other	: $rep_opt_other"
+echo "  delay_type	: $dly_type"
+echo "  These $point_cnt points are indicated."
+echo "### 2. Check report cmd with \"set timing_report_unconstrained_paths true\"."
+if { $timing_report_unconstrained_paths	!= true } {
+   uplevel {set timing_report_unconstrained_paths true};
+   eval "report_timing $rep_opt_all -exceptions all"
+   eval "report_timing $rep_opt_all -exceptions all" > $out_dir/unconst.rep
+   set fileID [ open $out_dir/unconst.rep ]
+   set exception_hit_flag 0
+   set reason_hit_flag 0
+   set false_hit_flag 0
+   while {! [eof $fileID] } {
+      set rep_line [gets $fileID];
+      if { [regexp {The dominant exceptions are:} $rep_line ] == 1 } {
+         set exception_hit_flag 1;
+      } elseif { [regexp {The unconstrained reasons (except for false path) are:} $rep_line ] == 1 } {
+         set reason_hit_flag 1;
+      } elseif { [regexp {No Paths.} $rep_line ] == 1 } {
+         echo "  ---> Object path is not exist."
+         echo "       Case1: The path does not exist physically."
+         echo "       Case2: The path is intercepted by set_case_analysis constraints."
+         echo "       Case3: The path is intercepted by set_disable_timing constraints."
+         echo "       Or other..."
+      }
+      if { [regexp {slack\s+\(} $rep_line ] == 1 } {
+          echo "$rep_line"
+      } elseif { [regexp {Path is unconstrained} $rep_line ] == 1 } {
+          echo "$rep_line"
+      }
+      if { $exception_hit_flag == 1 } {
+          echo $rep_line"
+          if { [regexp {FALSE} $rep_line ] == 1 } {
+             set false_hit_flag 1
+          }
+      }
+   }
+   close $fileID
+   uplevel {set timing_report_unconstrained_paths false};
+   if { $false_hit_flag == 1 } {
+      echo "  Info0002	: false exception exists in object path."
+   } else {
+      echo "  Info0003	: false exception doesn't exist in object path."
+   }
+   if { $reason_hit_flag == 1 } {
+      echo "  Info0004	: unconstrained reason exists in object path."
+   }
+} else {
+   echo "  ---> Skipped. Because value timing_report_unconstrained_paths has already \"true\"." 
+}
+echo "### 3. Check start and end clocks.";
+   if { $from_class != "clock" } {
+      if { [regexp {\S} $from_class] == 1 } {
+         set from_clk [get_attribute [get_attribute [eval "get_$from_class $from_point"] clocks -quiet] full_name];
+         if { $from_clk != "" } {
+            echo "  Clock of start point	: $from_clk";
+         } else {
+            echo "  Clock of start point	: Not found.";
+         }
+      } elseif { $thr_point(0) != "" } {
+         if { [regexp {CLK} $thr_point(0) ] == 1 } {
+            set from_clk [get_attribute [get_attribute [eval "get_$thr_class(0) $thr_point(0)"] clocks -quiet] full_name];
+            if { $from_clk != "" } {
+               echo "  Clock of 1st thr point	: $from_clk";
+            } else {
+               echo "  Clock of 1st thr point	: Not found.";
+            }
+         } else {
+            echo "  Clock of start point	: Start point is not indicated.";
+            echo "                      	  Also 1st through point \"$thr_point(0)\" is not clock pin.";
+         }
+      } else {
+          echo "  Clock of start point	: Start point is not indicated.";
+          echo "                	  Also through point is not indicated.";
+      }
+   } else {
+      echo "  Clock of start point	: $from_point";
+      if { $thr_cnt > 0 } {
+         set thr_from_clks ""
+         if { $thr_class(0) == "pin" } {
+            set thr_from_clks [get_attribute [get_attribute [get_pins -of [get_cells -of_objects [eval "get_$thr_class(0) $thr_point(0)"] ] -filter "lib_pin_name==CLK" -quiet ] clocks -quiet] full_name];
+         } elseif { $thr_class(0) == "port" } {
+            set thr_from_clks [get_port_clk $thr_point(0) O $thr_edge(0) $dly_type $out_dir/report_port.log]
+         }
+         if { $thr_from_clks != "" } {
+            set from_clk_hit_flag 0;
+            set from_point [get_attribute [eval "get_clocks $from_point"] full_name]
+            foreach thr_from_clk $thr_from_clks {
+               if { $from_point == $thr_from_clk } {
+                  set from_clk_hit_flag 1;
+               }
+            }
+            if { $from_clk_hit_flag != 1 } {
+               echo "  ---> Warning0001: -from clock \"$from_point\" indicated as endpoint is not related to first through point \"$thr_point(0)\"."
+            } else {
+               echo "  ---> Info0004	:  -from clock \"$from_point\" is related to first through point \"$thr_point(0)\"."
+            }
+         } 
+      }
+   }
+   if { $to_class != "clock" } {
+      if { [regexp {\S} $to_class] == 1 } { 
+         if { $to_class == "port" } {
+            set to_clk [get_port_clk $to_point O $to_edge $dly_type $out_dir/report_port.log]
+         } else {
+            set to_clk ""
+            foreach_in_collection cell_pin [get_pins -of [get_cells -of_objects $to_point] ] {
+               if { [get_attribute $cell_pin is_clock_pin ] == true } {
+                  set to_clk "$to_clk [get_attribute [get_attribute $cell_pin clocks -quiet] full_name]";
+               }
+            }
+         }
+         if { $to_clk != "" } {
+            echo "  Clock of end point	: $to_clk";
+         } else {
+            echo "  Clock of end point	: Not found.";
+         }
+      } else {
+         echo "  Clock of end point	: Not indicated.";
+         if { $thr_cnt > 0 } {
+            if { [regexp {CLK} $thr_point([expr $thr_cnt-1]) ] == 1 && $thr_class([expr $thr_cnt-1]) == "pin" } {
+               set to_clk [get_attribute [get_attribute [get_pins -of [get_cells -of_objects [eval "get_$thr_class([expr $thr_cnt-1]) $thr_point([expr $thr_cnt-1])"] ] -filter "lib_pin_name==CLK" -quiet] clocks -quiet] full_name];
+            } elseif { $thr_class([expr $thr_cnt-1]) == "port" } {
+               set to_clk [get_port_clk $thr_point([expr $thr_cnt-1]) O $thr_edge([expr $thr_cnt-1]) $dly_type $out_dir/report_port.log]
+            } else {
+               set to_clk ""
+            }
+            if { $to_clk != "" } {
+               echo "  Clock of last thr point	: $to_clk";
+            } else {
+               echo "  Clock of last thr point	: Not found.";
+            }
+         }
+      }
+   } else {; # -to clock indicdated; 
+      echo "  Clock of to point	: $to_point";
+      if { $thr_cnt > 0 } {
+         set thr_to_clks ""
+         if { $thr_class([expr $thr_cnt-1]) == "pin" } {
+            if { [get_attribute [get_cells -quiet -of [eval "get_$thr_class([expr $thr_cnt-1]) $thr_point([expr $thr_cnt-1])"]] is_hierarchical] != "true" } {
+               set thr_to_clks [get_attribute [get_attribute [get_pins -of [get_cells -of_objects [eval "get_$thr_class([expr $thr_cnt-1]) $thr_point([expr $thr_cnt-1])"] ] -filter "lib_pin_name==CLK"] clocks -quiet] full_name];
+            } else {
+               echo "  ---> Warning0003: last through point is hierarchy pin. So, clock check is not executed for -to clock \"$to_point\"."
+            }
+         } elseif { $thr_class([expr $thr_cnt-1]) == "port" } {
+            set thr_to_clks [get_port_clk $thr_point([expr $thr_cnt0]) O $thr_edge([expr $thr_cnt-1]) $dly_type $out_dir/report_port.log]
+         }
+         if { $thr_to_clks != "" } {
+            set to_clk_hit_flag 0;
+            set to_point [get_attribute [eval "get_clocks $to_point"] full_name]
+            foreach thr_to_clk $thr_to_clks {
+               if { $to_point == $thr_to_clk } {
+                  set to_clk_hit_flag 1;
+               }
+            }
+            if { $to_clk_hit_flag != 1 } {
+               echo "  ---> Warning0002: -to clock \"$to_point\" indicated as endpoint is not related to last through point \"$thr_point([expr $thr_cnt-1])\"."
+            } else {
+               echo "  ---> Info0005	: -to clock \"$to_point\" is related to last through point \"$thr_point([expr $thr_cnt-1])\"."
+            }
+         } 
+      }
+   }
+echo "### 4. Check indicated path point variation";
+   if { $point_cnt > 1 } {
+      set thr_cmd_all "";
+      for { set i 0 } {$i < $thr_cnt} { incr i } {
+         set thr_cmd_all "$thr_cmd_all $thr_edge($i) $thr_point($i)";
+      }
+      echo "  === Check A. report with excluding each points";
+      if { $from_point != "" } {
+         eval "report_timing  $thr_cmd_all $to_edge $to_point" > $out_dir/no-from.rep;
+         set path_exc_status(from) [get_path_status "$out_dir/no-from.rep"]
+         echo "    ---> Without from point	: $path_exc_status(from).";
+      }
+      if { $to_point != "" } {
+         eval "report_timing  $from_edge $from_point $thr_cmd_all" > $out_dir/no-to.rep;
+         set path_exc_status(to) [get_path_status "$out_dir/no-to.rep"]
+         echo "    ---> Without to point	: $path_exc_status(to).";
+      }
+      set thr_cmd "";
+      if { $thr_cnt > 0 } {
+         for { set i 0 } {$i < $thr_cnt} { incr i } {
+            set thr_cmd "";
+            for { set j 0 } {$j < $thr_cnt} { incr j } {
+               if { $i != $j } {
+                  set thr_cmd "$thr_cmd $thr_edge($i) $thr_point($i)";
+               }
+            } 
+            eval "report_timing  $from_edge $from_point $thr_cmd $to_edge $to_point" > $out_dir/no-thr$i.rep;
+            set path_exc_status(thr$i) [get_path_status "$out_dir/no-thr$i.rep"]
+            echo "    ---> Without thr point$i	: $path_exc_status(thr$i).";
+         } 
+      }
+
+      echo "";
+      echo "  === Check B. report with only including each points";
+
+      set chkb_const_cnt 0
+      if { $from_point != "" } {
+         eval "report_timing  $from_edge $from_point" > $out_dir/from-only.rep;
+         set path_inc_status(from) [get_path_status "$out_dir/from-only.rep"]
+         echo "    ---> Only from point	: $path_inc_status(from).";
+         if { $path_inc_status(from) == "Constrainted"} {
+            incr chkb_const_cnt
+         }
+      }
+      if { $to_point != "" } {
+         eval "report_timing  $to_edge $to_point" > $out_dir/to-only.rep;
+         set path_inc_status(to) [get_path_status "$out_dir/to-only.rep"];
+         echo "    ---> Only to   point	: $path_inc_status(to).";
+         if { $path_inc_status(to) == "Constrainted"} {
+            incr chkb_const_cnt
+         }
+      }
+      if { $thr_cnt > 0 } {
+         if { $thr_cnt != 1 } {
+            eval "report_timing  $thr_cmd_all" > $out_dir/thr-only.rep;
+            set path_inc_status(thr_all) [get_path_status "$out_dir/thr-only.rep"];
+            echo "    ---> Only thr  point	: $path_inc_status(thr_all).";
+         }
+         for { set i 0 } {$i < $thr_cnt} { incr i } {
+            eval "report_timing  $thr_edge($i) $thr_point($i)" > $out_dir/thr$i-only.rep;
+            set path_inc_status(thr$i) [get_path_status "$out_dir/thr$i-only.rep"];
+            echo "    ---> Only thr  point$i	: $path_inc_status(thr$i).";
+            if { $path_inc_status(thr$i) == "Constrainted"} {
+               incr chkb_const_cnt
+            }
+         }
+      }
+
+      if { $from_point != "" } {
+         if { $path_inc_status(from) != "Constrainted" && $path_exc_status(from) == "Constrainted" } {
+            echo "   *** from \"$from_edge $from_point\" is doubtful."
+         }
+      }
+      if { $to_point != "" } {
+         if { $path_inc_status(to) != "Constrainted" && $path_exc_status(to) == "Constrainted" } {
+            echo "   *** to \"$to_edge $to_point\" is doubtful."
+         }
+      }
+      if { $thr_cnt > 0 } {
+         for { set i 0 } {$i < $thr_cnt} { incr i } {
+            if { $path_inc_status(thr$i) != "Constrainted" } {
+               if { $path_exc_status(thr$i) == "Constrainted" } {
+                  echo "   *** thr$i \"$thr_edge($i) $thr_point($i)\" is doubtful."
+               }
+            }
+         }
+      }
+      if { $chkb_const_cnt == $point_cnt } {
+         echo "   *** report of each points are correctly reported. The combination of these point is doubtful."
+      }
+   } else {
+      echo "  ---> Skipped. Because indicated path point number is only $point_cnt." 
+   }
+
+#echo "### 5. Check fixed or disabled points around indicated points.";
+#   if { $from_point != "" && $from_class != "clock" } {
+#      echo "   ### check fanout of from point";
+#      set from_fanout_all  [eval "all_fanout -from $from_point -flat -trace_arc all"];
+#      set from_fanout_timing [eval "all_fanout -from $from_point -flat -trace_arc timing"];
+#      echo $from_fanout_all > $out_dir/from_fanout_all.rep;
+#      echo $from_fanout_timing > $out_dir/from_fanout_timing.rep;
+#      set fixed_num [expr [sizeof_collection $from_fanout_all] - [sizeof_collection $from_fanout_timing]]
+#      if { $fixed_num > 0 } {
+#         foreach point_all [get_attribute $from_fanout_all full_name] {
+#            set uniq_point_hit 0
+#            foreach point_timing [get_attribute $from_fanout_timing full_name] {
+#               if { $point_timing == $point_all } {
+#                  incr uniq_point_hit
+#               }
+#            }
+#            if { $uniq_point_hit == 0 } {
+#               echo "$point_all" >> $out_dir/from_fanout_disabled.rep;
+#            }
+#         }
+#         echo "    Warning0003 : There is a possiblity that several fanout of from point is disabled or fixed by case or disable settings."
+#         echo "                  These points are reported to $out_dir/from_fanout_disabled.rep."
+#      }
+#   }
+#   if { $to_point != ""  && $to_class != "clock" } {
+#      echo "   ### check fanin of to point"
+#      set to_fanin_all    [eval "all_fanin -to $to_point -flat -trace_arc all"];
+#      set to_fanin_timing [eval "all_fanin -to $to_point -flat -trace_arc timing"];
+#      echo [get_attribute $to_fanin_all full_name] > $out_dir/to_fanin_all.rep;
+#      echo [get_attribute $to_fanin_timing full_name] > $out_dir/to_fanin_timing.rep;
+#      set fixed_num [expr [sizeof_collection $to_fanin_all] - [sizeof_collection $to_fanin_timing]]
+#      if { $fixed_num > 0 } {
+#         foreach point_all [get_attribute $to_fanin_all full_name] {
+#            set uniq_point_hit 0
+#            foreach point_timing [get_attribute $to_fanin_timing full_name] {
+#               if { $point_timing == $point_all } {
+#                  incr uniq_point_hit
+#               }
+#            }
+#            if { $uniq_point_hit == 0 } {
+#               echo "$point_all" >> $out_dir/to_fanin_disabled.rep;
+#            }
+#         }
+#         echo "    Warning0004 : There is a possiblity that several fanin of to point is disabled or fixed by case or disable settings."
+#         echo "                  These points are reported to $out_dir/to_fanin_disabled.rep."
+#      }
+#   }
+#   if { $thr_cnt > 0 } {
+#      for { set i 0 } {$i < $thr_cnt} { incr i } {
+#         regexp {\-(rise_|fall_|)} $thr_edge($i) thr_edge_parts
+#         echo "  === check fanout of thr${i} point"
+#         set thr_fanout_all    [eval "all_fanout -from $thr_point($i) -flat -trace_arc all"];
+#         set thr_fanout_timing [eval "all_fanout -from $thr_point($i) -flat -trace_arc timing"];
+#         echo [get_attribute $thr_fanout_all full_name] > $out_dir/thr${i}_fanout_all.rep;
+#         echo [get_attribute $thr_fanout_timing full_name] > $out_dir/thr${i}_fanout_timing.rep;
+#         set fixed_num [expr [sizeof_collection $thr_fanout_all] - [sizeof_collection $thr_fanout_timing]]
+#         echo "    ---> $fixed_num disabled points exist."
+#         if { $fixed_num > 0 } {
+#            foreach point_all [get_attribute $thr_fanout_all full_name] {
+#               set uniq_point_hit 0
+#               foreach point_timing [get_attribute $thr_fanout_timing full_name] {
+#                  if { $point_timing == $point_all } {
+#                     incr uniq_point_hit
+#                  }
+#               }
+#               if { $uniq_point_hit == 0 } {
+#                  echo "$point_all" >> $out_dir/thr${i}_fanout_disabled.rep;
+#               }
+#            }
+#            echo "    Warning0005 : There is a possiblity that several fanout of thr${i} point is disabled or fixed by case or disable settings."
+#            echo "                  These points are reported to $out_dir/thr${i}_fanout_disabled.rep."
+#         }
+#         echo "  === check fanin  of thr${i} point"
+#         set thr_fanin_all       [eval "all_fanin  -to $thr_point($i) -flat -trace_arc all"];
+#         set thr_fanin_timing    [eval "all_fanin  -to $thr_point($i) -flat -trace_arc timing"];
+#         echo [get_attribute $thr_fanin_all full_name] > $out_dir/thr${i}_fanin_all.rep;
+#         echo [get_attribute $thr_fanin_timing full_name] > $out_dir/thr${i}_fanin_timing.rep;
+#         set fixed_num [expr [sizeof_collection $thr_fanin_all] - [sizeof_collection $thr_fanin_timing]]
+#         echo "    ---> $fixed_num disabled points exist."
+#         if { $fixed_num > 0 } {
+#            foreach point_all [get_attribute $thr_fanin_all full_name] {
+#               set uniq_point_hit 0
+#               foreach point_timing [get_attribute $thr_fanin_timing full_name] {
+#                  if { $point_timing == $point_all } {
+#                     incr uniq_point_hit
+#                  }
+#               }
+#               if { $uniq_point_hit == 0 } {
+#                  echo "$point_all" >> $out_dir/thr${i}_fanin_disabled.rep;
+#               }
+#            }
+#            echo "    Warning0006 : There is a possiblity that several fanin of thr${i} point is disabled or fixed by case or disable settings."
+#            echo "                  These points are reported to $out_dir/thr${i}_fanin_disabled.rep."
+#         }
+#      }
+#   }
+#
+echo "###### End analyze_rep_cmd script.";
+}
+#-----------------------------------------------------------
+#-- start define procedure
+#-----------------------------------------------------------
+   proc astc_path_skew_calc { paths } {
+      set path_max  0;
+      set path_min  10000;
+      foreach path $paths {
+         if {$path > $path_max} {
+            set path_max $path
+         }
+         if {$path < $path_min} {
+            set path_min $path
+         }
+         set path_skew [expr $path_max - $path_min]
+      }
+      return ($path_skew);
+   }
+   proc astc_path_max_calc { paths } {
+      set path_max  -10000;
+      foreach path $paths {
+         if {$path > $path_max} {
+            set path_max $path
+         }
+      }
+      return ($path_max);
+   }
+   proc astc_path_min_calc { paths } {
+      set path_min  10000;
+      foreach path $paths {
+         if {$path < $path_min} {
+            set path_min [expr $path ]
+         }
+      }
+      return ($path_min);
+   }
+   proc astc_path_err_calc { path_errors } {
+      set err_flag  0;
+      foreach path_err $path_errors {
+         set err_flag [expr $err_flag + $path_err]
+      }
+      return ($err_flag);
+   }
+#-----------------------------------------------------------
+#-- end   define procedure
+#-----------------------------------------------------------
+proc rep_exec_time { rst_flag } {
+   # This procedure measure interval time between execution.
+
+   global ciesta_sec_start_1st;
+   global ciesta_sec_start;
+   global ciesta_sec_end;
+   set sec 0;
+   if { ![info exist ciesta_sec_end] } {
+      uplevel "set ciesta_sec_end \"0\"";
+   } 
+   uplevel "set ciesta_sec_start $ciesta_sec_end";
+   uplevel "set ciesta_sec_end [clock seconds]";
+
+   if { $rst_flag == "reset" } {
+      set ciesta_sec_start "0"
+   }
+
+   global ciesta_sec_end;
+   set day  "00";
+   set hour "00";
+   set min  "00";
+   set sec  "00";
+   if { $ciesta_sec_start != 0 } {
+      set sec [expr $ciesta_sec_end - $ciesta_sec_start];
+      set day [expr int($sec / (60*60*24))];
+      set sec [expr fmod($sec, 60*60*24)];
+      set hour [expr int($sec / (60*60))];
+      set sec [expr fmod($sec, 60*60)];
+      set min [expr int($sec / 60)];
+      set sec [expr int(fmod($sec, 60))];
+      set time_com "${day}d:${hour}h:${min}m:${sec}s";
+
+      set sec [expr $ciesta_sec_end - $ciesta_sec_start_1st];
+      set day [expr int($sec / (60*60*24))];
+      set sec [expr fmod($sec, 60*60*24)];
+      set hour [expr int($sec / (60*60))];
+      set sec [expr fmod($sec, 60*60)];
+      set min [expr int($sec / 60)];
+      set sec [expr int(fmod($sec, 60))];
+      set total_time_com "${day}d:${hour}h:${min}m:${sec}s";
+      echo "   \[Execution time :  Interval=$time_com, Total=$total_time_com\]";
+
+   } else {
+      uplevel "set ciesta_sec_start_1st $ciesta_sec_end";
+      echo "   ### rep_exec_time procedure was reset by the execution of \"rep_exec_time {reset}\".";
+      echo "   ### Interval time output from next execution.";
+      echo "   ### Interval: Time from before execution,  Total: Total time from reset.";
+   }
+}
