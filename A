@@ -1,0 +1,924 @@
+#===============================================================================
+#  Initialize
+#===============================================================================
+### Source : user setting variable ###
+set  common       ../../../1_common/2_dmax
+set  input_dir    ./input_dir
+set  log_dir      ./logs
+set  rep_dir      ./reports
+set  net_dir      ./netlist
+set  spf_dir      ./spf
+#===============================================================================
+#  Infomation file
+#===============================================================================
+### TOP module ###
+set  top_module    "r5f523e6a"
+set setting_path   "../../99_setting/2_dmax"
+### Netlist ###
+set  netlist    "/design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/40_gate/v102/r5f523e6a_self_gatenet_20180703.v"
+### library name ###
+set  std_lib   "MF3TM6_Pss_V2p0_T125"
+### dont_use_list ###
+set  scr_file(dont_use)     ""
+lappend scr_file(dont_use)  "/design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v100/99_setting/2_dmax/dont_use_RX23E_A_to_dft_20180401.tcl"
+### ICG Type ###
+set  icg_type   "TM6GTDX20"
+### TestMode port name ###
+set  tm_port_name       { cpusys/dftpf/prpg/prpg_edt_bypass 0 }
+### Instance prefix ###
+set  dmax_inst  "dftc_mode_u"
+### Chain count ###
+set  chain      "168"
+### BIT count ###
+set  bit        "8"
+### Pre scan Module ###
+set pre_scan    ""
+# lappend pre_scan { <module>  <netlist_file_path> }
+lappend pre_scan { ux002hprpg020 /design02/RX23E_AFE/usr/zhangyl/r5f523e6/1_logic/prpg_macro/1_macro/ux002hprpg020/002_dft/work_dir_0/netlist/rx130_256kb/ux002hprpg020_dftc.v }
+### default test protocols ###
+set default_period          "80.00"
+set default_strobe          "19.00"
+set default_delay            "0.00"
+set default_bidir_delay      "0.00"
+### DFT Signal ###
+set setting_file(dft_signal)            "${setting_path}/define_dft_signal.tcl"
+../../99_setting/2_dmax/define_dft_signal.tcl
+### Outside Scan (script_file) ###
+set setting_file(outside_scan)          "${setting_path}/define_outside_scan.tcl"
+../../99_setting/2_dmax/define_outside_scan.tcl
+### Test Model setting (script file) ###
+set scr_file(test_model)                "${setting_path}/set_test_model.tcl"
+../../99_setting/2_dmax/set_test_model.tcl
+### Dont touch setting (script file) ###
+set scr_file(dont_touch)                "${setting_path}/set_dont_touch.tcl"
+../../99_setting/2_dmax/set_dont_touch.tcl
+### Test assume (script_file) ###
+set scr_file(test_assume)               "${setting_path}/set_test_assume.tcl"
+../../99_setting/2_dmax/set_test_assume.tcl
+### Hook-up test port (script file) ###
+set scr_file(hookup_test_port)          "${setting_path}/hookup_test_port.tcl"
+../../99_setting/2_dmax/hookup_test_port.tcl
+### Hook-up dummy port (script file) ###
+set scr_file(hookup_dummy_port)         "${setting_path}/hookup_dummy_ports.tcl"
+../../99_setting/2_dmax/hookup_dummy_ports.tcl
+#===============================================================================
+#  Option setting
+#===============================================================================
+### Insert TPI (script file) ###
+set scr_file(insert_tpi)                ""
+
+#===============================================================================
+# Environments variable setting
+#===============================================================================
+set auto_wire_load_selection		  "area_reselect" 
+set enable_recovery_removal_arcs	  "true" 
+set timing_self_loops_no_skew		  "false" 
+set timing_clock_gating_propagate_enable  "true"
+set report_default_significant_digits	  "3"
+set hdlin_presto_net_name_prefix	  "n"
+set hdlin_check_no_latch		  "true"
+set compile_seqmap_propagate_constants	  "false"
+#===============================================================================
+# Set for General Design Compiler Variables
+#===============================================================================
+set link_force_case "check_reference" ;
+set write_name_nets_same_as_ports	  "true"
+set gen_match_ripper_wire_widths	  "true"
+set gen_cell_pin_name_separator		  "_"
+set hdlin_ff_always_sync_set_reset	  "false"
+set timing_clock_gating_propagate_enable  "true"
+#===============================================================================
+# Set for Cache Variables
+#===============================================================================
+set cache_dir_chmod_octal	"775"
+775
+set cache_file_chmod_octal	"664"
+664
+set cache_read			"."
+.
+set cache_read_info		"true"
+true
+set cache_write			"."
+.
+set cache_write_info		"true"
+true
+#===============================================================================
+# Default Variables for BSDCompiler and DFTCompiler
+#===============================================================================
+set test_default_period		"100.0"
+100.0
+set test_default_delay		  "0.0"
+0.0
+set test_default_bidir_delay	  "0.0"
+0.0
+set test_default_strobe		 "40.0"
+40.0
+set test_default_strobe_width	  "0.0"
+0.0
+#===============================================================================
+# Variables for rtldrc command(DFTCompiler)
+#===============================================================================
+set hdlin_enable_rtldrc_info	"true"
+true
+#===============================================================================
+# Set for Bus-Naming Variables
+#===============================================================================
+set bus_naming_style			{%s[%d]}
+%s[%d]
+set bus_range_separator_style		":"
+:
+set bus_extraction_style		{%s[%d:%d]}
+%s[%d:%d]
+set bus_inference_style			{%s[%d]}
+%s[%d]
+set bus_dimension_separator_style	{][}
+][
+set bus_minus_style			"-%d"
+-%d
+#===============================================================================
+# Set for Verilog Interface
+#===============================================================================
+set hdlin_auto_save_templates		  "false"
+false
+set hdlin_report_inferred_modules	  "verbose"
+Information: Variable 'hdlin_report_inferred_modules' has been consolidated under the variable 'hdlin_reporting_level'. (INFO-108)
+Information: Use of Variable 'hdlin_report_inferred_modules' is not recommended. This variable will be obsolete in a future release. (INFO-101)
+verbose
+set change_names_dont_change_bus_members  "true"
+true
+set verilogout_higher_designs_first	  "true"
+true
+set verilogout_no_tri			  "true"
+true
+set verilogout_single_bit		  "false"
+false
+set verilogout_show_unconnected_pins	  "true"
+true
+define_design_lib WORK -path ./WORK ;
+1
+#===============================================================================
+# Utility commands path setting
+#===============================================================================
+#===============================================================
+# Library setting
+#===============================================================
+### search_path setting ###
+set search_path { [format %s%s $synopsys_root "/libraries/syn" ] }
+set synthetic_library {
+    "standard.sldb"
+    "dw_foundation.sldb"
+}
+
+ ### link_library setting ###
+set link_library { "*"}
+set target_library { }
+   ### Define : Environment variable (common) ###
+set compile_delete_unloaded_sequential_cells	"false"
+set compile_seqmap_propagate_constants	"false"
+set edifout_netlist_only	"true"
+set edifout_no_array	"true"
+set verilogout_no_tri	"true"
+set verilogout_higher_designs_first	"true"
+set verilogout_show_unconnected_pins	"true"
+set test_enable_dft_drc	"true"
+set compile_instance_name_prefix	${dmax_inst}
+set test_stil_netlist_format	"verilog"
+#===============================================================================
+# Read design & Link design
+#===============================================================================
+### Read design : GateNet ###
+read_verilog -netlist  ${netlist}
+1
+### area report before DFT ###
+redirect ${rep_dir}/rep.area_synthesis {
+    echo "### Area Before DFT ###"
+    report_area -nosplit
+}
+#===============================================================================
+# Read test model
+#===============================================================================
+set hiera_file_path  ""
+if { [info exists pre_scan] && ![regexp {^$} ${pre_scan}] } {
+    foreach tmp_info ${pre_scan} {
+	set prescan_module  [lindex ${tmp_info} 0]
+	set prescan_file    [lindex ${tmp_info} 1]
+	lappend hiera_file_path ${prescan_file}
+
+	remove_design -h ${prescan_module}
+    }
+}
+Removing design 'prpg'
+
+#===============================================================================
+#  Test Model Setting : ctl
+#===============================================================================
+# read_verilog           "/xxx/xxx/xxx/fv/xxx.v"
+# read_test_model -f ctl "/xxx/xxx/xxx/dftc/xxx.ctl"
+### flash ###
+
+read_verilog           "/design02/RX23E_AFE/data/r5f523e6a/0_lib/v102/RX23E-A/HM/Flash_QNSB3N008K0V3/data/verilog/QNSB3N008K0V3.vi"
+Loading verilog file '/design02/RX23E_AFE/data/r5f523e6a/0_lib/v102/RX23E-A/HM/Flash_QNSB3N008K0V3/data/verilog/QNSB3N008K0V3.vi'
+Detecting input file type automatically (-rtl or -netlist).
+Running DC verilog reader
+Performing 'read' command.
+Compiling source file /design02/RX23E_AFE/data/r5f523e6a/0_lib/v102/RX23E-A/HM/Flash_QNSB3N008K0V3/data/verilog/QNSB3N008K0V3.vi
+Reading with netlist reader (equivalent to -netlist option).
+Verilog netlist reader completed successfully.
+Loaded 1 design.
+QNSB3N008K0V3
+read_test_model -f ctl "/design02/RX23E_AFE/data/r5f523e6a/0_lib/v102/RX23E-A/HM/Flash_QNSB3N008K0V3/data/dftmax/QNSB3N008K0V3.ctl"
+Reading test model file '/design02/RX23E_AFE/data/r5f523e6a/0_lib/v102/RX23E-A/HM/Flash_QNSB3N008K0V3/data/dftmax/QNSB3N008K0V3.ctl'...
+... STIL version 1.0 ( Design P2001.01 CTL P2001.10) ...
+... Building test model ...
+... Signals ...
+... SignalGroups  ...
+... SignalGroups Internal_scan_protocol ...
+... ScanStructures Internal_scan:  "0"  ...
+... Timing  ...
+... Procedures Internal_scan_protocol: "load_unload" "capture" "capture_DRDCLKC1" "capture_VBRESZ" ...
+... MacroDefs Internal_scan_protocol: "test_setup" ...
+... Environment "QNSB3N008K0V3" ...
+   ... CTL  ...
+   ... CTL all_dft_user ...
+   ... CTL all_dft_protocol ...
+   ... CTL all_dft ...
+   ... CTL Internal_scan_user ...
+   ... CTL Internal_scan_protocol ...
+   ... CTL Internal_scan ...
+... Environment dftSpec ...
+   ... CTL  ...
+   ... CTL all_dft ...
+   ... CTL Internal_scan ...
+Read test models for :  QNSB3N008K0V3 
+1
+#===============================================================================
+# Test Model list
+#===============================================================================
+set  test_model_list	""
+lappend test_model_list "QNSA3N128K0V3"
+current_design ${top_module}
+
+#===============================================================================
+#  Dont touch setting : Virtual cells
+#===============================================================================
+#===============================================================================
+#  Dont touch setting : cells
+#===============================================================================
+
+set_svf "netlist/${top_module}.svf"
+1
+### Link design ###
+link
+### Source : dont_use settting ###
+set_dont_use   [get_lib_cells   */*]
+set_dont_touch [get_lib_cells   */*]
+remove_attribute [get_lib_cells */*] dont_touch
+remove_attribute [get_lib_cells */*] dont_use  
+#===============================================================================
+# Report Test model
+#===============================================================================
+
+	report_test_model -design ${macro_name}
+ 
+****************************************
+Report : test model
+Design : QNSA3N128K0V3
+Version: K-2015.06-SP4
+Date   : Tue Jul  3 09:14:14 2018
+****************************************
+
+ Test Mode                Purpose           Spec    Impl    Model   Source
+--------------------------------------------------------------------------------
+ Internal_scan            InternalTest                      Yes
+ all_dft                  ForInheritOnly                    
+
+#===============================================================================
+# Insert TPI
+#===============================================================================
+
+#===============================================================================
+# Insert Dummy buffer
+#===============================================================================
+
+### source file : ../../99_setting/2_dmax/define_dft_signal.tcl
+#===============================================================================
+#  Define
+#===============================================================================
+### Define : Constant ###
+set  constant_list ""
+lappend constant_list { 1 RES }
+{ 1 RES }
+#####lappend constant_list { 0 REF0M }
+#####lappend constant_list { 0 REF0P }
+#####lappend constant_list { 0 VREFH0 }
+#####lappend constant_list { 0 VREFL0 }
+### Define : ScanEnable ###
+set  se_active_state    "1"
+1
+set  se_port_name       "MD"
+MD
+set  se_hook_up         "cpusys/dftpf/prpg/prpg_scan_en_out"
+cpusys/dftpf/prpg/prpg_scan_en_out
+### Define : Reset ###
+set  rst_active_state   "1"
+1
+set  rst_port_name      "P31"
+P31
+set  rst_hook_up        "cpusys/dftpf/lpdft/lptglue/gl_scanres_a_n"
+cpusys/dftpf/lpdft/lptglue/gl_scanres_a_n
+### Define : ScanDataIn ###
+set  si_port_name       "P30"
+P30
+set  si_hook_up         "cpusys/dftpf/prpg/prpg_scaap_sin[1]"
+cpusys/dftpf/prpg/prpg_scaap_sin[1]
+### Define : ScanDatOut ###
+set  so_port_name       "P26"
+P26
+set  so_hook_up         "iotop/edt_scanout"
+iotop/edt_scanout
+### Define : External(Master) clock ###
+set  clk_timing         { 20 60 }
+ 20 60 
+set  mclk_port_name     "P27"
+P27
+set  mclk_hook_up       "cpusys/syspf/cpg/shiftclk_pdrv/cg_buf/Y"
+cpusys/syspf/cpg/shiftclk_pdrv/cg_buf/Y
+### Define : dummy clock ###
+set  iclk_list          ""
+#lappend iclk_list { <Dummy_port>  <Internal_Pin> }
+lappend iclk_list { zz_dummy15  *}
+#===============================================================================
+#  set default test protocols
+#===============================================================================
+set test_default_period		${default_period}
+80.00
+set test_default_strobe		${default_strobe}
+19.00
+set test_default_delay		${default_delay}
+0.00
+set test_default_bidir_delay	${default_bidir_delay}
+0.00
+#===============================================================================
+#  Create Dummy port
+#===============================================================================
+#### Define : dummy port ###
+#echo "### source file : $setting_file(dummy_clk_port)"
+#source -echo -verbose  "$setting_file(dummy_clk_port)"
+set dummy_port ""
+### Define : test_mode_port ###
+set tmode_port  [lindex ${tm_port_name} 0]
+cpusys/dftpf/prpg/prpg_edt_bypass
+set tmode_act   [lindex ${tm_port_name} 1]
+0
+if { [regexp {^$} ${tmode_act}] } { set tmode_act 1 }
+# lappend dummy_port	${tmode_port}
+### Create port ###
+if {[info exists dummy_port]} {
+    foreach port_name ${dummy_port} {
+	echo "### Create dummy port : ${port_name}"
+	create_port ${port_name} -direction  "in"
+    }
+} else {
+    echo "### Create dummy port : No setting ###"
+}
+#===============================================================================
+#  DFT Configuration
+#===============================================================================
+set test_setup_additional_clock_pulse   "true"
+true
+set test_icg_p_ref_for_dft		${icg_type}
+TM6GTDX20
+### dft_insertion_configuration ###
+set_dft_insertion_configuration -synthesis_optimization "none" -preserve_design_name "true"
+Accepted insert_dft configuration specification.
+1
+### dft_configuration ###
+set_dft_configuration -scan_compression "enable"
+Accepted dft configuration specification.
+1
+# set_dft_configuration -fix_bidirectional "disable"
+### dft_drc_configuration ###
+set_dft_drc_configuration -internal_pins enable
+Accepted dft drc configuration specification.
+1
+### scan_configuration ###
+set_scan_configuration -style "multiplexed_flip_flop" -clock_mixing "mix_clocks" -chain_count "1"
+Accepted scan configuration for modes: all_dft
+1
+### scan_compression_configuration ###
+set_scan_compression_configuration     -serialize		chip_level     -chain_count	${chain}     -inputs		${bit}     -outputs		${bit}
+Accepted scan compression specification for design 'r5f523e6a'.
+1
+#===============================================================================
+#  DFT Signal
+#===============================================================================
+### set_dft_signal : Constant ###
+if {[info exists constant_list]} {
+    foreach const_info ${constant_list} {
+	set  const_val      [lindex ${const_info} 0]
+	set  const_port     [lindex ${const_info} 1]
+
+	echo "### set_dft_signal(constant) : ${const_val} ${const_port}"
+	set_dft_signal -view existing_dft -type Constant 	    -active_state ${const_val} -port [get_ports ${const_port}]
+    }
+} else {
+    echo "### set_dft_signal(constant) : No setting ###"
+}
+### set_dft_signal(constant) : 1 RES
+Accepted dft signal specification for modes: all_dft
+### set_dft_signal : TestMode ###
+#set_dft_signal -view spec -type TestMode -port ${tmode_port} -active_state ${tmode_act}
+set_dft_signal -view spec -type TestMode -hookup_pin ${tmode_port} -active_state ${tmode_act}
+Accepted dft signal specification for modes: all_dft
+1
+### set_dft_signal : ScanEnable ###
+set_dft_signal -view existing_dft -type ScanEnable     -active_state ${se_active_state} -port [get_ports ${se_port_name}] -hookup_pin [get_pins ${se_hook_up}]
+Accepted dft signal specification for modes: all_dft
+1
+set_dft_signal -view spec -type ScanEnable     -active_state ${se_active_state} -port [get_ports ${se_port_name}] -hookup_pin [get_pins ${se_hook_up}]
+Accepted dft signal specification for modes: all_dft
+1
+### set_dft_signal : Reset ###
+set_dft_signal -view existing_dft -type Reset     -active_state ${rst_active_state} -port [get_ports ${rst_port_name}] -hookup_pin [get_pins ${rst_hook_up}]
+Accepted dft signal specification for modes: all_dft
+1
+### ScanDataIn ###
+set_dft_signal -view spec -type ScanDataIn     -port [get_ports ${si_port_name}] -hookup_pin [get_pins ${si_hook_up}]
+Accepted dft signal specification for modes: all_dft
+1
+### ScanDataOut ###
+set_dft_signal -view spec -type ScanDataOut     -port [get_ports ${so_port_name}] -hookup_pin [get_pins ${so_hook_up}]
+Accepted dft signal specification for modes: all_dft
+1
+### External(Master) ###
+set_dft_signal -view existing_dft -type ScanClock -port ${mclk_port_name} -timing ${clk_timing}
+Accepted dft signal specification for modes: all_dft
+1
+set_dft_signal -view spec         -type TestData  -port ${mclk_port_name} -hookup_pin ${mclk_hook_up}
+Accepted dft signal specification for modes: all_dft
+1
+### Internal Clock ###
+if {[info exists iclk_list]} {
+    foreach iclk_info ${iclk_list} {
+	set  iclk_port_name	[lindex ${iclk_info} 0]
+	set  iclk_hook_up	[lindex ${iclk_info} 1]
+	set  iclk_sec_pin       [lindex ${iclk_info} 2]
+
+	echo "### set_dft_signal (Internal Clock) : ${iclk_port_name}"
+	set_dft_signal -view existing_dft -type ScanClock                         -timing ${clk_timing} -hookup_pin ${iclk_hook_up}
+#	set_dft_signal -view existing_dft -type ScanClock -port ${iclk_port_name} -timing ${clk_timing}
+#	set_dft_signal -view spec         -type TestData  -port ${iclk_port_name}                       -hookup_pin ${iclk_hook_up}
+
+	set num_iclk_info [llength $iclk_info]
+
+	if {[llength $iclk_info] == 3} {
+	set_dft_signal -view spec         -type ScanEnable -active_state ${se_active_state} -hookup_pin ${iclk_sec_pin} -usage scan
+	set_dft_connect LAB_${iclk_port_name}  -type scan_enable -target ${iclk_hook_up} -source ${iclk_sec_pin}
+	}
+        echo "$iclk_port_name , $iclk_sec_pin , $num_iclk_info"
+    }
+} else {
+    echo "### set_dft_signal (Internal Clock) : No setting"
+}
+### set_dft_signal (Internal Clock) : zz_dummy01
+Accepted dft signal specification for modes: all_dft
+Accepted dft signal specification for modes: all_dft
+Accepted typed DFT connectivity association specification
+zz_dummy01 , cpusys/syspf/cpg/cgtree/cgsecbclk/sec_buf/cg_buf/Y , 3
+...
+### set_dft_signal (Internal Clock) : zz_dummy15
+Accepted dft signal specification for modes: all_dft
+Accepted dft signal specification for modes: all_dft
+Accepted typed DFT connectivity association specification
+zz_dummy15 , cpusys/syspf/cpg/cgtree/cgsecplclk/sec_buf/cg_buf/Y , 3
+#===============================================================================
+#  TDVR
+#===============================================================================
+### dft_configuration ###
+if {[info exists tdvr(enable)] && [regexp -nocase {YES} $tdvr(enable)]} {
+    echo "### TDVR Enable ###"
+    set_dft_configuration -observe_points "enable"
+}
+### set_testability_configuration ###
+if {[info exists tdvr(enable)] && [regexp -nocase {YES} $tdvr(enable)]} {
+    #-- max test points --#
+    if {[info exists tdvr(max_test_points)]} {
+        set  max_test_points    $tdvr(max_test_points)
+    } else {
+        set  max_test_points    "1000"
+    }
+
+    #-- test point per scan --#
+    if {[info exists tdvr(point_per_scan)]} {
+        set  point_per_scan     $tdvr(point_per_scan)
+    } else {
+        set  point_per_scan     "8"
+    }
+
+   #-- power saving --#
+    if {[info exists tdvr(power_save)]} {
+        set  power_save         $tdvr(power_save)
+    } else {
+        set  power_save         "disable"
+    }
+
+
+    set_testability_configuration         -type                           "observe"         -clock_type                     "dedicated"         -max_test_points                ${max_test_points}         -test_points_per_scan_cell      ${point_per_scan}         -power_saving                   ${power_save}         -clock_signal                   $tdvr(clock_port)
+}
+#===============================================================================
+#  DFT Setting 
+#===============================================================================
+### Test assume ###
+echo "### source file : $scr_file(test_assume)"
+### source file : ../../99_setting/2_dmax/set_test_assume.tcl
+source -echo -verbose  "$scr_file(test_assume)"
+#===============================================================================
+#  Define : test_assume
+#===============================================================================
+set test_assume_list    ""
+#//
+#//
+#// DC-SCAN(Normal)
+#//
+# cpusys/syspf/mdent #
+#set_test_assume 0 cpusys/syspf/mdent/md_md0_a
+set_test_assume 0 cpusys/syspf/mdent/md_md0l_a
+Accepted set_test_assume specification
+1
+
+#===============================================================================
+#  Define : Outside Scan setting
+#===============================================================================
+# //
+# //
+set outside_list	""
+### CPUSYS ###
+lappend outside_list    "cpusys/idet/rx_idet_irqdtct/nc*/I69"
+if {[info exists outside_list]} {
+    set i 0
+
+    foreach outside_inst ${outside_list} {
+	echo "### set_scan_element : ${outside_inst}"
+	#set outside_col	[get_cells ${outside_inst}]
+	set outside_col	[get_cells -hier * -filter "full_name=~${outside_inst}"]
+	set_scan_element  false  ${outside_col}
+
+	foreach_in_collection outside_info ${outside_col} {
+	    incr i
+	    echo "${i}\t[get_object ${outside_info}]"	>> ${rep_dir}/rep.outside_scan_list
+	}
+    }
+} else {
+    echo "### set_scan_element : No setting ###"
+}
+### set_scan_element : cpusys/idet/rx_idet_irqdtct/nc*/I69
+
+### set_serialize_configuration ###
+set_serialize_configuration     -inputs	"1"     -outputs	"1"     -update_stage	"false"     -serializer_clock	${mclk_port_name}
+Accepted serialize specification for design 'r5f523e6a'.
+1
+### user defined DRC rule serverity ###
+set_dft_drc_rules -ignore TEST-504
+Information: Applying DFT DRC specification of "ignore" to all cells for violation TEST-504.
+Accepted dft_drc violation specification.
+1
+set_dft_drc_rules -ignore TEST-505
+Information: Applying DFT DRC specification of "ignore" to all cells for violation TEST-505.
+Accepted dft_drc violation specification.
+1
+#===============================================================================
+#  Report pre Scan
+#===============================================================================
+### Create test protocol ###
+create_test_protocol -capture_procedure single_clock
+In mode: all_dft...
+
+Information: Starting test protocol creation. (TEST-219)
+  ...reading user specified clock signals...
+Information: Identified system/test clock port P27 (20.0,60.0). (TEST-265)
+  ...reading user specified asynchronous signals...
+Information: Identified active high asynchronous control port P31. (TEST-266)
+1
+### Get reports ###
+dft_drc -pre_dft -verbose		>  ${rep_dir}/rep.pre_dft_drc
+preview_dft -test_points all -show all	>  ${rep_dir}/rep.pre_preview_dft
+report_dft_signal			>  ${rep_dir}/rep.pre_dft_signal
+report_scan_compression_configuration	>  ${rep_dir}/rep.pre_scan_compress
+report_scan_configuration		>  ${rep_dir}/rep.pre_scan_config
+report_scan_state 			>  ${rep_dir}/rep.pre_scan_state
+report_serialize_configuration		>  ${rep_dir}/rep.pre_serialize
+#===============================================================================
+#  Insert DFT
+#===============================================================================
+if { [info exists ident_shift_reg] && [regexp -nocase {YES} ${ident_shift_reg}] } {
+    set_scan_state test_ready
+}
+insert_dft
+
+Architecting Scan Compression structures
+  Architecting Scan Chains
+Architecting scan compression mode ScanCompression_mode with base mode Internal_scan
+Architecting Load Deserializer 
+  Number of inputs = 1 
+  Maximum size per input = 8 
+Architecting Unload Serializer 
+  Number of outputs = 1 
+  Maximum size per output = 8 
+Load/Unload Serializer Clock  = P27 
+Architecting Load Decompressor (version 5.8)
+  Number of inputs/chains/internal modes = 8/168/3
+Architecting Unload compressor (version 5.8)
+  Number of outputs/chains = 8/168
+  Warning: Compressor will have default x-tolerance
+* "/design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/r5f523e6a_DFT_clk_mux_0.v" file correctly generated *
+Writing test model file '/design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/r5f523e6a_DFT_clk_mux_0.ctl'...
+
+Running PRESTO HDLC
+Compiling source file /design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/r5f523e6a_DFT_clk_mux_0.v
+
+Inferred memory devices in process
+	in routine r5f523e6a_DFT_clk_mux_0 line 56 in file
+		'/design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/r5f523e6a_DFT_clk_mux_0.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|     count_q_reg     | Flip-flop |   4   |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+
+Sequential Cell (count_q_reg[3])
+	Cell Type: Flip-Flop
+	Multibit Attribute: N
+	Clock: count_clk'
+	Async Clear: scan_en'
+	Async Set: 0
+	Async Load: 0
+	Sync Clear: 0
+	Sync Set: 0
+	Sync Toggle: 0
+	Sync Load: 1
+
+Running PRESTO HDLC
+Compiling source file /design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/r5f523e6a_SCCOMP_COMPRESSOR.v
+
+Inferred memory devices in process
+	in routine r5f523e6a_SCCOMP_COMPRESSOR line 38 in file
+		'/design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/r5f523e6a_SCCOMP_COMPRESSOR.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|     serial_reg      | Flip-flop |   8   |  Y  | N  | N  | N  | N  | N  | N  |
+===============================================================================
+
+
+Sequential Cell (serial_reg[0])
+	Cell Type: Flip-Flop
+	Multibit Attribute: N
+	Clock: ser_clk
+	Async Clear: 0
+	Async Set: 0
+	Async Load: 0
+	Sync Clear: 0
+	Sync Set: 0
+	Sync Toggle: 0
+	Sync Load: 1
+Presto compilation completed successfully.
+Removing netlist file '/design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/r5f523e6a_SCCOMP_COMPRESSOR.v'...
+Removing test model file '/design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/r5f523e6a_SCCOMP_COMPRESSOR.ctl'...
+  Allocating blocks in 'r5f523e6a_U_compressor_ScanCompression_mode_0_dummy'
+  Inserting Scan Cells
+
+  Routing Scan Chains
+  Routing Global Signals
+Warning: Disconnecting pin 'pericore/anatop/afeh/ADSCAN_ENABLE' to route scan enable. (TEST-394)
+Warning: Disconnecting pin 'cpusys/dftpf/prpg/test_se' to route scan enable. (TEST-394)
+  Generating TCM logic ...
+    Generating decode logic for TCM...
+Information: Wrote /design02/RX23E_AFE/usr/zhangyl/r5f523e6/4_implement/43_dft/v102/2_dmax/v1021st00t/synopsys_cache_K-2015.06-SP4/DW01/DW01_decode/str/1/MF3TM6_Pss_V2p0_T125_9604/element.ddc as a cache element.  (SYNOPT-8)
+    Generating mode logic for TCM...
+  Mapping New Logic
+Warning: Test protocols written out with the internal pins flow enabled are not accurate and cannot be used. (TESTXG-53)
+Resetting current test mode
+
+Information: Timing loop detected. (OPT-150)
+
+### Remove dummy port ###
+if {[info exists dummy_port]} {
+    foreach dummy_port_name ${dummy_port} {
+	echo "### Remove port : ${dummy_port_name}"
+	remove_port ${dummy_port_name}
+    }
+} else {
+    echo "### Remove port : No setting"
+}
+### DFTMAX Decoder bus naming_rule ###
+current_design ${top_module}_DW01_decode_width1
+{r5f523e6a_DW01_decode_width1}
+# define_name_rules dft_dec_naming_rule -max_length "255" -allowed {a-zA-Z0-9_$.&<=>@^`|~} -type net
+define_name_rules dft_dec_naming_rule -max_length "255" -allowed {a-zA-Z0-9_} -type net
+1
+define_name_rules dft_dec_naming_rule -case_insensitive -remove_internal_net_bus -special verilog
+1
+define_name_rules dft_dec_naming_rule -target_bus_naming_style "%s_%d"
+1
+change_names -rule dft_dec_naming_rule -hierarchy
+Warning: In the design r5f523e6a_DW01_decode_width1, net 'A[0]' is connecting multiple ports. (UCN-1)
+1
+current_design ${top_module}
+Information: Building the design 'ux002hprpg020'. (HDL-193)
+Warning: Cannot find the design 'ux002hprpg020' in the library 'WORK'. (LBR-1)
+Warning: Unable to resolve reference 'ux002hprpg020' in 'ux100hdftpf10'. (LINK-5)
+{r5f523e6a}
+### Measures of wired_and ###
+set store_current [ current_design ]
+{r5f523e6a}
+foreach_in_collection design_name [ all_designs ] {
+    current_design $design_name
+    set net_name [filter [ get_nets -hier "*"] "@wired_and==true"]
+    if { [get_object_name $net_name] != {} } {
+        remove_attribute $net_name wired_and
+    }
+}
+Warning: Design 'r5f523e6a' has '1' unresolved references. For more detailed information, use the "link" command. (UID-341)
+Information: Building the design 'ux002hprpg020'. (HDL-193)
+Warning: Cannot find the design 'ux002hprpg020' in the library 'WORK'. (LBR-1)
+Warning: Unable to resolve reference 'ux002hprpg020' in 'ux100hdftpf10'. (LINK-5)
+Information: Building the design 'ux002hprpg020'. (HDL-193)
+Warning: Cannot find the design 'ux002hprpg020' in the library 'WORK'. (LBR-1)
+Warning: Unable to resolve reference 'ux002hprpg020' in 'ux100hdftpf10'. (LINK-5)
+Information: Building the design 'ux002hprpg020'. (HDL-193)
+Warning: Cannot find the design 'ux002hprpg020' in the library 'WORK'. (LBR-1)
+Warning: Unable to resolve reference 'ux002hprpg020' in 'ux100hdftpf10'. (LINK-5)
+current_design $store_current
+{r5f523e6a}
+### Output netlist ###
+foreach file_path ${hiera_file_path} { read_verilog -netlist ${file_path} }
+
+link
+
+### area report after DFT ###
+redirect -append ${rep_dir}/rep.area_synthesis { 
+    echo "### Area after DFT ###"
+    report_area -nosplit 
+}
+set  dft_inst_col [get_cells -h * -f "@full_name=~*LOCKUP* OR @full_name=~*dftc_mode_u*"]
+{}
+redirect ${rep_dir}/rep.dft_inst_list {
+    foreach_in_collection tmp_col ${dft_inst_col} {
+        set ff_name  [get_attri [get_cells ${tmp_col}] ref_name]
+        set ff_inst  [get_attri [get_cells ${tmp_col}] full_name]
+        echo "[format %-16s ${ff_name}]  ${ff_inst}"
+    }
+}
+write -f verilog -h -o ${net_dir}/${top_module}_dftc.v
+
+1
+
+### Output scan_def ###
+write_scan_def -output ${rep_dir}/${top_module}_scan_def.file
+Information: SCANDEF generation will use DFT test mode 'Internal_scan'.
+
+#===============================================================================
+# Check scanned by DFTMAX
+#===============================================================================
+### Suppress_message ###
+suppress_message OPT-314
+### List & File ###
+#-- is scaned registers --#
+set lis_scaned          ""
+set rep_scaned          "${rep_dir}/rep.reginfo_scaned"
+./reports/rep.reginfo_scaned
+#-- is lockup latch --#
+set lis_lockup          ""
+set rep_lockup          "${rep_dir}/rep.reginfo_lockup"
+./reports/rep.reginfo_lockup
+#-- is outside scan --#
+set lis_outside         ""
+set rep_outside         "${rep_dir}/rep.reginfo_outside_scan"
+./reports/rep.reginfo_outside_scan
+#-- is_latch --#
+set lis_latch           ""
+set rep_latch           "${rep_dir}/rep.reginfo_latch"
+./reports/rep.reginfo_latch
+#-- is not scaned --#
+set lis_not_scaned      ""
+set rep_not_scaned      "${rep_dir}/rep.reginfo_cannot_scaned"
+./reports/rep.reginfo_cannot_scaned
+### Check All registers ###
+foreach_in_collection  cell_col  [all_registers] {
+    set  cell_inst [get_attri ${cell_col} full_name]
+    set  cell_name [get_attri ${cell_col} ref_name]
+    set  scanned   [get_attri ${cell_col} -q scanned_by_test_compiler]
+    set  lockup    [get_attri ${cell_col} -q scan_lockup]
+    set  element   [get_attri ${cell_col} -q scan_element]
+
+    #-- is scaned registers --#
+    if { ${scanned} == "true" } {
+        lappend lis_scaned [list ${cell_name}  ${cell_inst}]
+        continue
+    }
+
+    #-- is lockup latch --#
+    if { ${lockup} == "true" } {
+        lappend lis_lockup [list ${cell_name} ${cell_inst}]
+        continue
+    }
+
+    #-- is outside scan --#
+    if { ${element} == "false" } {
+        lappend lis_outside [list ${cell_name} ${cell_inst}]
+        continue
+    }
+
+    #-- is not scaned --#
+    set lib_cell_col  [get_lib_cell */${cell_name} -q]
+    set is_a_latch    [get_attri [get_lib_cell ${lib_cell_col}] -q is_a_latch]
+
+    if { ${is_a_latch} == "true" } {
+        lappend lis_latch  [list ${cell_name} ${cell_inst}]
+        continue
+    }
+
+    lappend lis_not_scaned  [list ${cell_name} ${cell_inst}]
+}
+### Output report ###
+#-- is scaned registers --#
+set o_file [open ${rep_scaned} w]
+file12
+set i 0
+0
+puts ${o_file} "#==============================================================="
+puts ${o_file} "# Scaned registers"
+puts ${o_file} "#==============================================================="
+foreach info_list ${lis_scaned} {
+    incr i
+    set cell_name [lindex ${info_list} 0]
+    set cell_inst [lindex ${info_list} 1]
+    puts ${o_file} "${i}\t${cell_name}\t${cell_inst}"
+}
+close ${o_file}
+#-- is lockup latch --#
+set o_file [open ${rep_lockup} w]
+file12
+set i 0
+0
+puts ${o_file} "#==============================================================="
+puts ${o_file} "# Lockup latchs"
+puts ${o_file} "#==============================================================="
+foreach info_list ${lis_lockup} {
+    incr i
+    set cell_name [lindex ${info_list} 0]
+    set cell_inst [lindex ${info_list} 1]
+    puts ${o_file} "${i}\t${cell_name}\t${cell_inst}"
+}
+close ${o_file}
+#-- is outside scan --#
+set o_file [open ${rep_outside} w]
+file12
+set i 0
+0
+puts ${o_file} "#==============================================================="
+puts ${o_file} "# Ouside scan registers"
+puts ${o_file} "#==============================================================="
+foreach info_list ${lis_outside} {
+    incr i
+    set cell_name [lindex ${info_list} 0]
+    set cell_inst [lindex ${info_list} 1]
+    puts ${o_file} "${i}\t${cell_name}\t${cell_inst}"
+}
+close ${o_file}
+#-- is_latch --#
+set o_file [open ${rep_latch} w]
+file12
+set i 0
+0
+puts ${o_file} "#==============================================================="
+puts ${o_file} "# Latchs"
+puts ${o_file} "#==============================================================="
+foreach info_list ${lis_latch} {
+    incr i
+    set cell_name [lindex ${info_list} 0]
+    set cell_inst [lindex ${info_list} 1]
+    puts ${o_file} "${i}\t${cell_name}\t${cell_inst}"
+}
+close ${o_file}
+#-- is not scaned --#
+set o_file [open ${rep_not_scaned} w]
+file12
+set i 0
+0
+puts ${o_file} "#==============================================================="
+puts ${o_file} "# Cannot scaned registers"
+puts ${o_file} "#==============================================================="
+foreach info_list ${lis_not_scaned} {
+    incr i
+    set cell_name [lindex ${info_list} 0]
+    set cell_inst [lindex ${info_list} 1]
+    puts ${o_file} "${i}\t${cell_name}\t${cell_inst}"
+}
+close ${o_file}
+### Unsuppress_message ###
+unsuppress_message OPT-314
+#===============================================================================
+#  Exit
+#===============================================================================
+exit
