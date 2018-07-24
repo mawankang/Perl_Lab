@@ -195,3 +195,62 @@ RTL-TOP.v
 
 
 ###
+
+
+#!/bin/tcsh
+# the next line restarts using tclsh \
+exec tclsh "$0" "$*"
+
+#foreach args ${argv} {
+#    ### OverWrite ###
+#    if {[regexp -nocase -- {^-f} ${args}]} {
+#	set  overwrite	"1"
+#
+#    ### block ###
+#    } else {
+#	set target  ${args}
+#    }
+#}
+
+#argu pass step1: exec tclsh $0 $*
+#	        aline args  $0 $* in tcsh with tclsh
+#tips: $* is one string with blank as seperator
+#	$@ is several strings,only bash support
+#tips $* seems have done the translation from ../a* to ../a1 ../a2 ../a3
+#puts "$argv"
+set targets   ${argv}
+
+
+proc get_abspath { args } {
+    #remove '{' and '}' 
+    set targets_temp $args
+    set targets_temp [regsub  -all {\{} $targets_temp {}]
+    set targets_temp [regsub  -all {\}} $targets_temp {}]
+    set abs_paths  ""
+    foreach target [split $targets_temp] {
+	  set root_dir [pwd]
+   	   ### is directory ###
+   	  if {[file isdirectory ${target}]} {
+   	      cd ${target}
+   	      set abs_path [pwd]
+   	  }
+
+   	  ### is file ###
+   	  if {[file isfile ${target}]} {
+   	      set t_dir   [file dirname ${target}]
+   	      set t_file  [file tail ${target}]
+
+   	      cd ${t_dir}
+   	      set abs_path [pwd]
+   	      set abs_path ${abs_path}/${t_file}
+   	  }
+   	  
+   	  ### Return ###
+	  puts "$abs_path"
+	  #lappend abs_paths ${abs_path}
+   	  cd ${root_dir}
+    }
+   #puts [llength ${abs_paths}]
+   #return  ${abs_paths}
+}
+puts [get_abspath $targets]
