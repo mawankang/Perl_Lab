@@ -1,0 +1,1967 @@
+
+---1:coverage.awk---
+#! /bin/nawk -f
+BEGIN{
+     cargo[1]  = "DR"
+     cargo[2]  = "DS"
+     cargo[3]  = "DI"
+     cargo[4]  = "AP"
+     cargo[5]  = "NP"
+     cargo[6]  = "NC"
+     cargo[7]  = "NO"
+     cargo[8]  = "AN"
+     cargo[9]  = "AX"
+     cargo[10] = "UU"
+     cargo[11] = "UO"
+     cargo[12] = "UT"
+     cargo[13] = "UB"
+     cargo[14] = "UR"
+     mod_num   = 0
+     mod_lst[mod_num] = "TOP_MODULE"
+
+     for( i = 1 ; i <= 14 ; i = i + 1 )
+     {
+          while( ( "wc -l ./reports/faults_" cargo[i] ".rep" | getline ) > 0 )
+               num[mod_lst[mod_num],cargo[i]] = $1
+          close("wc -l ./reports/faults_" cargo[i] ".rep")
+     }
+}
+{
+     mod_num = mod_num + 1
+     mod_lst[mod_num] = $1
+
+     for( i = 1 ; i <= 14 ; i = i + 1 )
+     {
+          "grep " mod_lst[mod_num] " ./reports/faults_" cargo[i] ".rep | wc -l" | getline num[mod_lst[mod_num],cargo[i]]
+          close("grep " mod_lst[mod_num] " ./reports/faults_" cargo[i] ".rep | wc -l")
+     }
+}
+END{
+     printf(" %-50s ,","module_name")
+     for( i = 1 ; i <= 14 ; i = i + 1 )
+          printf("    %s    ,",cargo[i])
+     printf("\n")
+
+     for( j = 0 ; j <= mod_num ; j = j + 1 )
+     {
+         printf(" %-50s ,",mod_lst[j])
+         for( i = 1 ; i <= 14 ; i = i + 1 )
+              printf(" %-8s ,",num[mod_lst[j],cargo[i]])
+         printf("\n")
+     }
+}
+---2:coverage.tcl---
+#!/bin/sh
+# the next line restarts using tclsh \
+exec tclsh "$0" "$@"
+
+### Category list ###
+set cat_list { DR DS DI AP NP NC NO AN AX UU UO UT UB UR }
+
+### Read module list ###
+#set mod_list ""
+set m	     64
+
+#set i_file [open [lindex ${argv} 0] r]
+#while { [gets ${i_file} line] > -1 } {
+    #lappend mod_list ${line}
+
+    # if { ${m} < [string length ${line}] } { set m  [string length ${line}] }
+#}
+set mod_list [exec cat [lindex ${argv} 0]]
+
+### Index ####
+set index    "[format %-${m}s module_name],"
+foreach cat_name ${cat_list} { set index "${index}[format %8s ${cat_name}]," }
+
+set o_file [open [lindex ${argv} 1] w]
+puts ${o_file} "${index}"
+
+### Read reports ###
+set top  "[format %-${m}s TOP_MODULE],"
+
+foreach cat_name ${cat_list} {
+    set faults($cat_name)  ""
+
+    set i_file [open ./reports/faults_${cat_name}.rep r]
+    while { [gets ${i_file} line] > -1 } {
+	#if {[regexp -- ${cat_name} ${line}]} { lappend faults($cat_name) ${line} }
+	if {![regexp -- "Warning" ${line}]} { lappend faults($cat_name) ${line} }
+	#lappend faults($cat_name) ${line} 
+    }
+    close ${i_file}
+
+    set top "${top}[format %8s [llength $faults($cat_name)]],"
+    #puts [llength $faults($cat_name)]
+}
+
+puts ${o_file} "${top}"
+
+### Check reports ###
+foreach mod_name ${mod_list} {
+    set data  "[format %-${m}s ${mod_name}],"
+
+    foreach cat_name ${cat_list} {
+	#set count($cat_name)  0
+
+        #puts [lsearch -all $faults($cat_name) ${mod_name}]
+        set count($cat_name) [llength [lsearch -all -regexp $faults($cat_name) ${mod_name}]]
+	#foreach fault_list $faults($cat_name) {
+	   #if {[regexp -- ${mod_name} ${fault_list}]} { incr count($cat_name) }
+	#}
+        set data "${data}[format %8s $count($cat_name)]," 
+    }
+
+    #foreach cat_name ${cat_list} { set data "${data}[format %8s $count($cat_name)]," }
+
+    puts ${o_file} "${data}"
+
+}
+close ${o_file}
+
+#EOF
+---3:NEC_setup.tcl---
+#===============================================================================
+#  NEC setup convert to tcl format
+#===============================================================================
+#-- set wgl -nom -nop -inv omit
+set_wgl -nomacro_usage -nopad -inversion_reference omit
+
+#-- set wgl -bidi_map 0x 0-
+set_wgl -bidi_map {0x 0-}
+
+#-- set wgl -bidi_map 1x 1-
+set_wgl -bidi_map {1x 1-}
+
+#-- set wgl -bidi_map xx x-
+set_wgl -bidi_map {xx x-}
+
+#-- set wgl -bidi_map zx -x
+set_wgl -bidi_map {zx -x}
+
+#-- set wgl -bidi_map z0 -0
+set_wgl -bidi_map {z0 -0}
+
+#-- set wgl -bidi_map z1 -1
+set_wgl -bidi_map {z1 -1}
+
+#-- set wgl -bidi_map zz -z
+set_wgl -bidi_map {zz -z}
+
+#-- set wgl -bidi_map z- --
+set_wgl -bidi_map {z- --}
+
+#-- set wgl -bidi_map -x --
+set_wgl -bidi_map {-x --}
+
+#-- set_sim -strong
+set_sim -strong
+
+#-- set bus -external_z X
+set_bus -external_z X
+
+#-- set drc -clock -dynamic
+set_drc -clock -dynamic
+
+#-- set drc -noserial_clock_grouping
+# set_drc -noserial_clock_grouping
+
+#-- set drc -disturb_clock_grouping
+set_drc -disturb_clock_grouping
+
+#-- set faults -AU_credit 0
+set_faults -au_credit 0
+
+#-- set faults -PT_credit 0
+set_faults -pt_credit 0
+
+
+---4:rep_drc_edit.tcl---
+### Get DRC Reports ###
+if { [info exists get_drc_rep] && [regexp -nocase {YES} ${get_drc_rep}] } {
+    if { [file exists ${drc_rep_dir}] } { file delete -force ${drc_rep_dir} }
+    file mkdir ${drc_rep_dir}
+
+    ### Get summary report ###
+    report_rule -fail     > ${drc_rep_dir}/rep_rule
+
+    ### Get Error list ###
+    set tmp_flag  "0"
+    set drc_list  ""
+    set i_file [open ${drc_rep_dir}/rep_rule r]
+
+    while { [gets ${i_file} line] > -1 } {
+	if { ${tmp_flag} == "0" } {
+	    if { [regexp -- {---} ${line}] } { set tmp_flag "1" }
+	} else {
+	    lappend drc_list [lindex ${line} 0]
+	}
+    }
+    close ${i_file}
+
+    ### Get verbose reports ###
+    foreach err_name ${drc_list} {
+	report_violations ${err_name} > ${drc_rep_dir}/rep_vio_${err_name}
+    }
+}
+---5:rep_drc.tcl---
+report_rule -fail     > ./reports_drc/rep_rule
+
+report_violations N2  > ./reports_drc/rep_vio_n02
+
+report_violations B6  > ./reports_drc/rep_vio_b06
+report_violations B7  > ./reports_drc/rep_vio_b07
+report_violations B8  > ./reports_drc/rep_vio_b08
+report_violations B9  > ./reports_drc/rep_vio_b09
+report_violations B10 > ./reports_drc/rep_vio_b10
+report_violations B13 > ./reports_drc/rep_vio_b13
+report_violations B18 > ./reports_drc/rep_vio_b18
+report_violations B22 > ./reports_drc/rep_vio_b22
+report_violations B23 > ./reports_drc/rep_vio_b23
+report_violations B33 > ./reports_drc/rep_vio_b33
+
+report_violations S19 > ./reports_drc/rep_vio_s19
+report_violations S29 > ./reports_drc/rep_vio_s29
+
+report_violations C2  > ./reports_drc/rep_vio_c02
+report_violations C3  > ./reports_drc/rep_vio_c03
+report_violations C5  > ./reports_drc/rep_vio_c05
+report_violations C6  > ./reports_drc/rep_vio_c06
+report_violations C8  > ./reports_drc/rep_vio_c08
+report_violations C12 > ./reports_drc/rep_vio_c12
+report_violations C15 > ./reports_drc/rep_vio_c15
+report_violations C16 > ./reports_drc/rep_vio_c16
+report_violations C21 > ./reports_drc/rep_vio_c21
+report_violations C22 > ./reports_drc/rep_vio_c22
+report_violations C25 > ./reports_drc/rep_vio_c25
+report_violations C26 > ./reports_drc/rep_vio_c26
+
+report_violations V31 > ./reports_drc/rep_vio_v31
+
+report_violations X1  > ./reports_drc/rep_vio_x01
+
+report_violations Z2  > ./reports_drc/rep_vio_z02
+
+report_violations R11 > ./reports_drc/rep_vio_r11
+report_violations R14 > ./reports_drc/rep_vio_r14
+report_violations R15 > ./reports_drc/rep_vio_r15
+---6:replace_violation.tcl---
+proc replace_violation { rule } {
+  redirect -variable ruleline {report_rules $rule}
+  set ruleline [string trim $ruleline]
+  regexp { +([0-9]+) +} $ruleline match count
+
+  for {set i 1} {$i <= $count} {incr i} {
+    redirect -variable rep {report_violations ${rule}-$i}
+    set rep [string trim $rep]
+
+    if { $rule == "C22" } {
+      get_c22_violation "$rep"
+    } elseif { $rule == "C25" } {
+      get_c25_violation "$rep"
+    }
+  }
+}
+
+proc local_get_primitive { primitive } {
+    redirect -variable rep {report_primitive $primitive}
+    set repprim_list [split $rep \n]
+    foreach line $repprim_list {
+      if { [regexp {^ ([\w\/]+)\s+\((\d+)\)} $line] == 1 } {
+        regexp {^ ([\w\/]+)\s+\((\d+)\)} $line match \
+          primitive_name primitive_id
+      }
+    }
+    return $primitive_name
+}
+
+proc get_c22_violation { rep } {
+    regexp {\d+} $rep primitive_id1
+    regexp {\((\d+)\)} $rep match primitive_id2
+
+    set primitive_name1 [local_get_primitive $primitive_id1]
+    set primitive_name2 [local_get_primitive $primitive_id2]
+
+    regsub {\d+} $rep $primitive_name1 new_line1
+    regsub {\((\d+)\)} $new_line1 $primitive_name2 new_line2
+    echo $new_line2
+}
+
+proc get_c25_violation { rep } {
+  regexp {\((\d+)\)[\s\w]+\((\d+)\)[\s\w]+\((\d+)\)} \
+    $rep match primitive_id1 primitive_id2 primitive_id3
+
+  set primitive_name1 [local_get_primitive $primitive_id1]
+  set primitive_name2 [local_get_primitive $primitive_id2]
+  set primitive_name3 [local_get_primitive $primitive_id3]
+
+  regsub {\((\d+)\)} $rep       $primitive_name1 new_line1
+  regsub {\((\d+)\)} $new_line1 $primitive_name2 new_line2
+  regsub {\((\d+)\)} $new_line2 $primitive_name3 new_line3
+  echo $new_line3
+}---7:tmax_atpg.tcl---
+################################################################################
+#  TetraMAX script : stuck_at
+################################################################################
+
+################################################################################
+##  System mode
+################################################################################
+system date
+
+### Define setting ###
+echo "### source file : ./.zdefine.tcl"
+source -echo -verbose  "./.zdefine.tcl"
+
+### Infomation file ###
+echo "### source file : ${input_dir}/infomation.tcl"
+source -echo -verbose  "${input_dir}/infomation.tcl"
+
+
+#===============================================================================
+#  Output log file
+#===============================================================================
+echo "#-- Set log file : ${log_dir}/tmax_${pat_cate}_${pat_class}.log"
+set_messages -log	"${log_dir}/tmax_${pat_cate}_${pat_class}.log" -replace
+set_messages -level	"expert"
+
+
+#===============================================================================
+#  Get license & report version
+#===============================================================================
+get_license -wait 50000 Test-Compression-ATPG
+report_version -full
+
+
+#===============================================================================
+#  Source NEC_setup
+#===============================================================================
+echo "### source file : ${common}/NEC_setup.tcl"
+source -echo -verbose  "${common}/NEC_setup.tcl"
+
+
+#===============================================================================
+#  Read design
+#===============================================================================
+### Clear ###
+read_netlist -delete
+
+### Library ###
+echo "### source file : ${input_dir}/set_library.tcl"
+source -echo -verbose  "${input_dir}/set_library.tcl"
+
+### Netlist ###
+foreach net_file ${netlist} { read_netlist ${net_file} }
+
+
+#===============================================================================
+#  Design setting
+#===============================================================================
+### Black-Box setting ###
+if { [info exists scr_file(bbox)] } {
+    foreach tmp_scr $scr_file(bbox) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+}
+
+### Define : mode_setting ###
+if { [info exists scr_file(net_connect)] } {
+    foreach tmp_scr $scr_file(net_connect) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+} else {
+    echo "### Error : Please set <net_connect>"
+    exit
+}
+
+#===============================================================================
+#  DRC Mask setting
+#===============================================================================
+foreach rule_name {
+    B11
+    R37
+} {
+    echo "#-- DRC Warning : ${rule_name}"
+    set_rules ${rule_name} warning
+}
+
+if {[info exists drc_set(mask)]} {
+    foreach rule_name $drc_set(mask) {
+        echo "#-- DRC Mask : ${rule_name}"
+        set_rules ${rule_name} -mask
+    }
+}
+
+### clock Xmask
+### for transition Skewed Load ###
+if { [regexp -nocase -- {transition_sk} ${pat_class}]} {
+    echo "#-- Skewed Load Clock Xmask"
+    set_simulation -xclock_gives_xout
+}
+
+#===============================================================================
+#  Build model
+#===============================================================================
+if { [info exists top_module] } {
+    set_build -merge noglobal_tie_propagate
+
+    if { ![regexp -- {iddq} ${pat_class}] } { set_build -nodelete_unused_gates }
+
+    echo "#-- Build model : ${top_module}"
+    run_build_model ${top_module}
+} else {
+    echo "### Error : Please set <top_module>"
+    exit
+}
+
+#===============================================================================
+#  ATPG Setting
+#===============================================================================
+### Clock / Reset ###
+if { [info exists scr_file(clock_reset)] } {
+    foreach tmp_scr $scr_file(clock_reset) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+} else {
+    echo "### Error : Please set <clock_reset>"
+    exit
+}
+
+### Port Mask ###
+remove_pi_constraints -all
+remove_po_masks -all
+
+if { [info exists scr_file(port_mask)] } {
+    foreach tmp_scr $scr_file(port_mask) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+}
+
+### add_cell_constraint ###
+if { [info exists scr_file(cell_const)] } {
+    foreach tmp_scr $scr_file(cell_const) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+}
+
+### for transition ###
+if { [regexp -nocase -- {transition} ${pat_class}]} {
+    echo "#-- Crate fault list for Transition"
+    add_slow_bidi -all
+    set_delay -common_launch_capture_clock
+    set_drc -noshadow
+}
+
+### for transition false path setting ###
+if { [info exists file_path(sdc_file)] } {
+    set_sdc -setup -hold
+    foreach tmp_file $file_path(sdc_file) {
+	read_sdc -echo ${tmp_file}
+    }
+}
+#===============================================================================
+#  DRC
+#===============================================================================
+##set_drc -nodslave_remodel ##20121101
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+ set_drc -nodslave_remodel
+} else {
+ set_drc -dslave
+}
+# set_drc -noreclassify_invalid_dslaves
+set_drc -noshadow
+set_drc -store_setup
+set_drc -clock -any
+
+### SET_DRC ###
+if { [info exists file_path(spf_file)] } {
+    set_drc $file_path(spf_file)
+} else {
+    echo "### Error : Please set <spf_file>"
+    exit
+}
+
+if { ![regexp -- {convert-t2s} ${pat_class}] } {
+ # add hidden option for Pseudo Error (S32).  2013.04.19 #
+ set_drc -enhanced_stability_analysis
+ # ---------------------------------------------------- #
+}
+
+### Run DRC ###
+run_drc
+
+
+### Get DRC Reports ###
+if { [info exists get_drc_rep] && [regexp -nocase {YES} ${get_drc_rep}] } {
+    if { [file exists ${drc_rep_dir}] } { file delete -force ${drc_rep_dir} }
+    file mkdir ${drc_rep_dir}
+
+    ### Get summary report ###
+    report_rule -fail     > ${drc_rep_dir}/rep_rule
+
+    ### Get Error list ###
+    set tmp_flag  "0"
+    set drc_list  ""
+    set i_file [open ${drc_rep_dir}/rep_rule r]
+
+    while { [gets ${i_file} line] > -1 } {
+	if { ${tmp_flag} == "0" } {
+	    if { [regexp -- {---} ${line}] } { set tmp_flag "1" }
+	} else {
+	    lappend drc_list [lindex ${line} 0]
+	}
+    }
+    close ${i_file}
+
+    ### Get verbose reports ###
+    foreach err_name ${drc_list} {
+	report_violations ${err_name} > ${drc_rep_dir}/rep_vio_${err_name}
+    }
+}
+
+if { ![regexp -- {convert-t2s} ${pat_class}] } {
+    ### Get DRC detail reports ###
+    source ${common}/replace_violation.tcl
+    replace_violation C22 > ${drc_rep_dir}/rep_vio_C22
+    replace_violation C25 > ${drc_rep_dir}/rep_vio_C25
+}
+
+#if { [info exists file_path(sdc_file)] } {
+    report_sdc -all_path  > ${drc_rep_dir}/sdc_transition.rpt
+#}
+
+#===============================================================================
+#  Report scan cheains
+#===============================================================================
+report_scan_chains 
+report_scan_chains				> ${rep_dir}/report_scan_chain_${pat_cate}_${pat_class}.rep
+report_scan_cells -all -verbose -reverse_order	> ${rep_dir}/report_scan_cells_${pat_cate}_${pat_class}.rep
+
+### report scan chains/cell for columbo ###
+report_scan_cells -all -verbose     > ${log_dir}/${pat_cate}_${pat_class}_scan_cells.rep
+report_scan_chains                  > ${log_dir}/${pat_cate}_${pat_class}_scan_chains.rep
+report_scan_chains -command_report  > ${log_dir}/${pat_cate}_${pat_class}_scan_commnad.rep
+report_compressors -unload -verbose > ${log_dir}/${pat_cate}_${pat_class}_scan.compressor.rep
+report_serializers -unload -verbose > ${log_dir}/${pat_cate}_${pat_class}_scan.serializer.rep
+
+
+#===============================================================================
+#  Create fault lists
+#===============================================================================
+### for stuck-at ###
+if { [regexp -- {stuck_at} ${pat_class}] } {
+    echo "#-- Crate fault list for stuck_at"
+    set_faults  -model stuck
+    set_faults  -noequiv_code
+    set_faults  -fault_coverage -atpg_effectiveness -summary verbose
+    add_faults  -all
+}
+
+### for transition ###
+if { [regexp -- {transition} ${pat_class}] } {
+    echo "#-- Crate fault list for Transition"
+    set_fault   -model transition
+    set_delay   -launch_cycle system_clock
+    set_delay   -nopi_changes
+    set_delay   -two_clock_transition_optimization
+}
+
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+### change for HIKITSUGI
+    echo "#-- Crate fault list for stuck-at model"
+    set_faults  -model stuck
+    set_faults  -noequiv_code
+    set_faults  -fault_coverage -atpg_effectiveness -summary verbose
+    add_faults  -all
+}
+
+
+### for iddq ###
+if { [regexp -- {iddq} ${pat_class}] } {
+    echo "#-- Crate fault list for Stuck_at"
+    #set_faults -model iddq
+    #set_faults -noequiv_code
+    #set_iddq   -toggle
+    #set_faults -fault_coverage -atpg_effectiveness -summary verbose
+    #add_faults -all
+
+    set_faults  -model stuck
+    set_faults  -noequiv_code
+    set_faults  -fault_coverage -atpg_effectiveness -summary verbose
+    add_faults  -all
+}
+
+### Read Fault list ###
+if { [info exists fault_list] && ![regexp -- {^$} ${fault_list}] } {
+    echo "#-- read_faults : ${fault_list}"
+    read_faults ${fault_list} -retain_code
+} else {
+    echo "#-- add_faults -all"
+    add_faults -all
+}
+
+### report faults ###
+report_faults -summary
+
+### Remove faults ###
+if { [info exists scr_file(remove_faults)] } {
+    foreach tmp_scr $scr_file(remove_faults) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+}
+
+### report faults ###
+report_faults -summary
+
+### add_slow_path ##
+#- if { [info exists file_path(slow_path_file)] } {
+#-     foreach tmp_file $file_path(slow_path_file) {
+#- 	source -echo -verbose ${tmp_file}
+#-     }
+#- }
+
+
+#===============================================================================
+#  run atpg
+#===============================================================================
+set_messages -level expert
+
+### SET ATPG ###
+set_atpg -verbose
+set_atpg -resim_basic_scan_patterns auto
+set_atpg -basic_min_detects_per_pattern 2
+# set_atpg -single_load_per_pattern
+
+#--- atpg_merge ---#
+if { [info exists atpg_set(atpg_merge)] && [regexp {[0-9]+} $atpg_set(atpg_merge)] } {
+    echo "#-- set_atpg -merge : $atpg_set(atpg_merge)"
+    set_atpg -merge $atpg_set(atpg_merge)
+} else {
+    echo "#-- set_atpg -merge : 10"
+    set_atpg -merge 10
+}
+
+#--- atpg_limit ---#
+if { [info exists atpg_set(atpg_limit)] && [regexp {[0-9]+} $atpg_set(atpg_limit)] } {
+    echo "#-- set_atpg -atpg_limit : $atpg_set(atpg_limit)"
+    set_atpg -abort_limit $atpg_set(atpg_limit)
+} else {
+    echo "#-- set_atpg -atpg_limit : 10"
+    set_atpg -abort_limit 10
+}
+
+#--- cap_cycle ---#
+if { [info exists atpg_set(cap_cycle)] && $atpg_set(cap_cycle) >= 2 && $atpg_set(cap_cycle) <= 10 } {
+    echo "#-- set_atpg -cap_cycle : $atpg_set(cap_cycle)"
+    set_atpg -capture_cycle $atpg_set(cap_cycle)
+}
+
+#--- full_seq_atpg ---#
+# set_atpg -full_seq_atpg
+
+#--- patterns ---#
+if { [info exists atpg_set(pat_limit)] && [regexp -- {[0-9]+} $atpg_set(pat_limit)] } {
+    echo "#-- set_atpg -patterns : $atpg_set(pat_limit)"
+    set_atpg -patterns $atpg_set(pat_limit)
+}
+
+#--- coverage ---#
+if { [info exists atpg_set(cov_limit)] && ![regexp -- {--} $atpg_set(cov_limit)] } {
+    echo "#-- set_atpg -coverage : $atpg_set(cov_limit)"
+    set_atpg -coverage $atpg_set(cov_limit)
+}
+
+### date ###
+system date
+
+if { ![regexp -- {convert-t2s} ${pat_class}] } {
+ ### run atpg basic_scan_only ###
+ run_atpg -auto_compression
+ run_atpg fast_sequential_only
+}
+
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+ ################################################################################
+ # TDF -> SAF FSIM COMP ( Scan Compression )
+ ################################################################################
+ # remove_faults -all
+ # set_faults -mode stuck
+ # add_faults -all
+
+ set_patterns -external ./binary/compression_transition
+
+ # ------ run sim ------
+ set_simulation -measure pat
+ # set_simulation -xclock_gives_xout
+ run_simulation
+ 
+ # ------ run fault sim ------
+ run_fault_sim
+ 
+ ################################################################################
+}
+
+### date ###
+system date
+
+
+#===============================================================================
+#  Output reports
+#===============================================================================
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+ report_summaries primitives faults patterns memory	> ${rep_dir}/tmax_${pat_cate}_${pat_class}.fsim.rep
+} else {
+ report_summaries primitives faults patterns memory	> ${rep_dir}/tmax_${pat_cate}_${pat_class}.rep
+}
+report_faults -unsuccessful				> ${rep_dir}/tmax_fault_unsuccessful_${pat_cate}_${pat_class}.rep
+
+if { ![regexp -- {convert-t2s} ${pat_class}] } {
+ ### report faults ###
+ report_faults -class DR  > ${rep_dir}/faults_DR.rep
+ report_faults -class DS  > ${rep_dir}/faults_DS.rep
+ report_faults -class DI  > ${rep_dir}/faults_DI.rep
+ report_faults -class AP  > ${rep_dir}/faults_AP.rep
+ report_faults -class NP  > ${rep_dir}/faults_NP.rep
+ report_faults -class UU  > ${rep_dir}/faults_UU.rep
+ report_faults -class UO  > ${rep_dir}/faults_UO.rep
+ report_faults -class UT  > ${rep_dir}/faults_UT.rep
+ report_faults -class UB  > ${rep_dir}/faults_UB.rep
+ report_faults -class UR  > ${rep_dir}/faults_UR.rep
+ report_faults -class AN  > ${rep_dir}/faults_AN.rep
+ report_faults -class AX  > ${rep_dir}/faults_AX.rep
+ report_faults -class NC  > ${rep_dir}/faults_NC.rep
+ report_faults -class NO  > ${rep_dir}/faults_NO.rep
+}
+
+#===============================================================================
+#  Write faults uncollapsed
+#===============================================================================
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+ set_faults -noequiv_code
+ write_faults ${rep_dir}/faults.${pat_class}.fsim -all -uncollapsed -replace
+} else {
+ write_faults ${rep_dir}/faults.${pat_class} -all -uncollapsed -replace
+
+ #===============================================================================
+ #  Output patterns
+ #===============================================================================
+ ### set_wgl for compression pattern  ###
+ if {[info exists pat_cate] && [regexp -nocase {compression|ts1|ts3} ${pat_cate}]} {
+     echo "#-- set_wgl : merge_compressed_chains"
+     set_wgl -merge_compressed_chains
+ }
+ 
+ ### output WGL(for tester) ###
+ write_patterns ${wgl_dir}/${pat_cate}_${pat_class}.wgl -format wgl -replace -split 900
+ 
+ 
+ ### outout verilog (for parallel|serial simulation) ###
+ if {[info exists create_pat(parallel)] && [regexp -nocase {YES} $create_pat(parallel)]} {
+     if {[regexp -nocase {compression|ts1|ts3} ${pat_cate}]} {
+	write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_para    -format stil -replace -parallel -nounified_stil_flow -cellname type
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri    -format stil -serial  -replace  -cellname type
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri5   -format stil -serial  -replace  -cellname type -last 5
+     }
+ 
+     if {[regexp -nocase {internal|ts2|ts4} ${pat_cate}]} {
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_para    -format stil -replace -parallel -nounified_stil_flow -cellname type
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri    -format stil -serial  -replace  -cellname type
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri5   -format stil -serial  -replace  -cellname type -last 5
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri200 -format stil -serial  -replace  -cellname type -last 200
+     }
+ }
+ 
+ ### outout Binary ###
+ if {[info exists create_pat(binary)] && [regexp -nocase {YES} $create_pat(binary)]} {
+     write_patterns ${bin_dir}/${pat_cate}_${pat_class} -format binary -replace -compress gzip
+ }
+}
+
+#===============================================================================
+#  Quit
+#===============================================================================
+quit
+
+#EOF
+---8:zgo_3_tmax_create_run_dir.tcl---
+#!/bin/sh
+# the next line restarts using tclsh \
+exec tclsh "$0" "$@"
+################################################################################
+#  zgo_3_tmax_create_run_dir.tcl
+#	Create TetraMax environment script
+#-----------------------------------------------------------------------
+#  Syntax :
+#    zgo_3_tmax_create_run_dir.tcl [-f] <pat_name> <dir_name>
+#     (Option)
+#        -f       : Over write
+#	 pat_name : Create pattern name ( 1st directory name )
+#	 dir_name : work_directory name ( 2ns directory name )
+#	 (Ex.)
+#	    <pat_name>/
+#		+- <dir_name>/
+#-----------------------------------------------------------------------
+#  Revision :
+#    V00.00.01 : 2011.07.20 / RDC-Bsetu1 : New Create
+################################################################################
+set  tool_version  "V00.00.01"
+puts ""
+puts "#### Create Synthesis environment (${tool_version}) ####"
+################################################################################
+
+#===============================================================================
+#  Argument
+#===============================================================================
+set  tool_name	"dftmax"
+set  overwrite  "0"
+set  pat_dir	""
+set  run_dir	""
+
+foreach args ${argv} {
+    ### Option ###
+    if {[regexp -- {^-} ${args}]} {
+	#---- Over Write ----#
+	if {[regexp -nocase -- {^-f} ${args}]} { set  overwrite  "1" }
+
+    ### run_dir ###
+    } else {
+	if { ${pat_dir} == "" } {
+	    set pat_dir ${args}
+	} else {
+	    set  run_dir  ${args}
+	}
+    }
+}
+
+#===============================================================================
+#  Command syntax
+#===============================================================================
+if { ${pat_dir} == "" || ${run_dir} == "" } {
+    puts "Error!! : Please check argument...."
+    puts ""
+    puts "  Syntax :"
+    puts "    zgo_3_tmax_create_run_dir.tcl \[-f\] <pat_name> <dir_name>"
+    puts "    (Option)"
+    puts "        -f       : Over write"
+    puts "        pat_name : Create pattern name ( 1st directory name )"
+    puts "        dir_name : work_directory name ( 2ns directory name )"
+    puts "    (Ex.)"
+    puts "      <pat_name>/"
+    puts "        +- <dir_name>/"
+    puts ""
+    exit
+}
+
+
+#===============================================================================
+#  Source : Rnvironment setting file(dotfile) path
+#===============================================================================
+source "../../../envfile/envfile_path.tcl"
+
+
+#===============================================================================
+#  Crate pattern directory
+#===============================================================================
+if {![file exists ${pat_dir}]} {
+    puts "Cerate : ${pat_dir}"
+    file mkdir ${pat_dir}
+}
+
+#===============================================================================
+#  Create directory
+#===============================================================================
+### Check directory ###
+if {[file exists ${pat_dir}/${run_dir}]} {
+    if {${overwrite} == "1" } {
+	puts "#--  ( Over-write environment )"
+	file delete -force  ${pat_dir}/${run_dir}
+    } else {
+	puts "Error : ${pat_dir}/${run_dir} is already exists!! ###"
+	exit
+    }
+}
+
+### Create directory ###
+puts "#--    Create environment : ${pat_dir}/${run_dir}"
+file mkdir ${pat_dir}/${run_dir}
+file mkdir ${pat_dir}/${run_dir}/input_dir
+
+
+#===============================================================================
+#  Create input infomation file
+#===============================================================================
+set  info_file  "${pat_dir}/${run_dir}/input_dir/infomation.tcl"
+set  o_file     [open ${info_file} w]
+
+#---- Output file format --------------#
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "#  Define infomation : Design ( Must )"
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "### Module Name ###"
+puts ${o_file}  "set  top_module    \"R5F10PMFJ\""
+puts ${o_file}  "set  setting_path  \"../../../99_setting/3_tmax\""
+puts ${o_file}  ""
+puts ${o_file}  "### Netlist ###"
+puts ${o_file}  "set  netlist    \"\""
+puts ${o_file}  "lappend netlist \"<netlist_file_path>\""
+puts ${o_file}  ""
+puts ${o_file}  "### Crate Pattern ( YES | NO )###"
+puts ${o_file}  "set  create_pat(binary)         \"YES\""
+puts ${o_file}  "set  create_pat(parallel)       \"YES\""
+puts ${o_file}  ""
+puts ${o_file}  "### Get DRC reports ( YES | NO ) ###"
+puts ${o_file}  "set  get_drc_rep  \"YES\""
+puts ${o_file}  ""
+puts ${o_file}  "### Pattern class ( stuck_at | transition\[_<clock>\] | transition_sk\[_<clock>\] ) ###"
+puts ${o_file}  "set  pat_class  \"<pattern_class>\""
+puts ${o_file}  ""
+puts ${o_file}  "### Pattern category ( ts1 | ts2 | ts3 | ts4 | compression | internal ) ###"
+puts ${o_file}  "set  pat_cate   \"<pattern_category>\""
+puts ${o_file}  ""
+puts ${o_file}  "### SPF file ###"
+puts ${o_file}  "set  spf_dir                \"<spf_directory_path>\""
+puts ${o_file}  "set  file_path(spf_file)    \"\${spf_dir}/\${top_module}_\${pat_cate}_\${pat_class}.spf\""
+puts ${o_file}  ""
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "# Define infomation : Design ( Optional )"
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "### Fault list ###"
+puts ${o_file}  "set  fault_list              \"\""
+puts ${o_file}  ""
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "#  Define infomation : Script ( Must )"
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "### Net connections Internal node sonstant ) ###"
+puts ${o_file}  "set  scr_file(net_connect)      \"\""
+puts ${o_file}  "lappend scr_file(net_connect)   \"\${setting_path}/define_net_connections.tcl\""
+puts ${o_file}  ""
+puts ${o_file}  "### Clock & Reset Setting ###"
+puts ${o_file}  "set  scr_file(clock_reset)      \"\""
+puts ${o_file}  "lappend scr_file(clock_reset)   \"\${setting_path}/define_clock_reset.tcl\""
+puts ${o_file}  ""
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "#  Define infomation : Script ( Optional )"
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "### Black-Box Setting ###"
+puts ${o_file}  "set  scr_file(bbox)             \"\""
+puts ${o_file}  "lappend scr_file(bbox)          \"\${setting_path}/define_black_box.tcl\""
+puts ${o_file}  ""
+puts ${o_file}  "### DRC mask setting ###"
+puts ${o_file}  "set  drc_set(mask)              \"\""
+puts ${o_file}  "# lappend drc_set(mask)         \"C1\""
+puts ${o_file}  "# lappend drc_set(mask)         \"C5\""
+puts ${o_file}  "# lappend drc_set(mask)         \"C6\""
+puts ${o_file}  "# lappend drc_set(mask)         \"C8\""
+puts ${o_file}  "# lappend drc_set(mask)         \"C9\""
+puts ${o_file}  "lappend drc_set(mask)           \"C11\""
+puts ${o_file}  "# lappend drc_set(mask)         \"C12\""
+puts ${o_file}  "lappend drc_set(mask)           \"C13\""
+puts ${o_file}  "lappend drc_set(mask)           \"C14\""
+puts ${o_file}  "# lappend drc_set(mask)         \"C22\""
+puts ${o_file}  "lappend drc_set(mask)           \"C25\""
+puts ${o_file}  "# lappend drc_set(mask)         \"S18\""
+puts ${o_file}  "# lappend drc_set(mask)         \"S29\""
+puts ${o_file}  ""
+puts ${o_file}  "### Port mask ###"
+puts ${o_file}  "set  scr_file(port_mask)              \"\""
+puts ${o_file}  "lappend scr_file(port_mask)           \"\${setting_path}/define_port_mask.tcl\""
+puts ${o_file}  ""
+puts ${o_file}  "### Cell constraint ###"
+puts ${o_file}  "set  scr_file(cell_const)             \"\""
+puts ${o_file}  "lappend scr_file(cell_const)          \"\${setting_path}/define_cell_constraint.tcl\""
+puts ${o_file}  ""
+puts ${o_file}  "### Remove faults ###"
+puts ${o_file}  "set  scr_file(remove_faults)          \"\""
+puts ${o_file}  "lappend scr_file(remove_faults)       \"\${setting_path}/define_remove_faults.tcl\""
+puts ${o_file}  ""
+#puts ${o_file}  "### Add slow path setting file ###"
+#puts ${o_file}  "set  file_path(slow_path_file)        \"\""
+#puts ${o_file}  "lappend file_path(slow_path_file)     \"\${setting_path}/define_slow_path.tcl\""
+puts ${o_file}  "### Add false path setting file ###"
+puts ${o_file}  "set  file_path(sdc_file)              \"\""
+puts ${o_file}  "lappend file_path(sdc_file)           \"\${setting_path}/define_false_path.sdc\""
+puts ${o_file}  ""
+puts ${o_file}  "### ATPG merge (Integer) ###"
+puts ${o_file}  "set  atpg_set(atpg_merge)       \"2000\""
+puts ${o_file}  ""
+puts ${o_file}  "### ATPG limit (Integer) ###"
+puts ${o_file}  "set  atpg_set(atpg_limit)       \"2000\""
+puts ${o_file}  ""
+puts ${o_file}  "### ATPG capture cycle (Integer:2-10) ###"
+puts ${o_file}  "set  atpg_set(cap_cycle)        \"2\""
+puts ${o_file}  ""
+puts ${o_file}  "### ATPG patturn limit (--|Integer) ###"
+puts ${o_file}  "set  atpg_set(pat_limit)        \"--\""
+puts ${o_file}  ""
+puts ${o_file}  "### ATPG coverage limit ( 0.00 - 100.00 ) ###"
+puts ${o_file}  "set  atpg_set(cov_limit)        \"100.00\""
+puts ${o_file}  ""
+#--------------------------------------#
+close ${o_file}
+
+#===============================================================================
+#  Create run batch file
+#===============================================================================
+set  batch_file	"${pat_dir}/${run_dir}/zgo_1_tetramax.csh"
+set  o_file	[open ${batch_file} w]
+
+#---- Output file format --------------#
+puts ${o_file}  "#!/bin/csh -f"
+puts ${o_file}  "################################################################################"
+puts ${o_file}  "#  zgo_tetramax.csh"
+puts ${o_file}  "#    TetraMax run batch file"
+puts ${o_file}  "################################################################################"
+puts ${o_file}  "set  env_file    =  \"$env_file(tetramax)\""
+puts ${o_file}  "set  mem         =  \"2000\""
+puts ${o_file}  "set  os          =  \"REDHATE5_0\""
+puts ${o_file}  "set  bs_other    =  \"\""
+puts ${o_file}  "#-------------------------------------------------------------------------------"
+puts ${o_file}  "set  common      =  \"../../../../1_common/3_tmax\""
+puts ${o_file}  "set  config      =  \"../../../../2_config\""
+puts ${o_file}  "set  lib_file    =  \"\${config}/library_setting.tcl\""
+puts ${o_file}  "set  input_dir   =  \"./input_dir\""
+puts ${o_file}  "set  log_dir     =  \"./logs\""
+puts ${o_file}  "set  rep_dir     =  \"./reports\""
+puts ${o_file}  "set  drc_rep_dir =  \"./drc_rep\""
+puts ${o_file}  "set  wgl_dir     =  \"./wgl\""
+puts ${o_file}  "set  vtb_dir     =  \"./verilog_tb\""
+puts ${o_file}  "set  bin_dir     =  \"./binary\""
+puts ${o_file}  "################################################################################"
+puts ${o_file}  ""
+puts ${o_file}  "### Create : directory ###"
+puts ${o_file}  "if (! -d \${log_dir} )   mkdir \${log_dir}"
+puts ${o_file}  "if (! -d \${rep_dir} )   mkdir \${rep_dir}"
+puts ${o_file}  "if (! -d \${wgl_dir} )   mkdir \${wgl_dir}"
+puts ${o_file}  "if (! -d \${vtb_dir} )   mkdir \${vtb_dir}"
+puts ${o_file}  "if (! -d \${bin_dir} )   mkdir \${bin_dir}"
+puts ${o_file}  ""
+puts ${o_file}  "### Create : zdefine.tcl ###"
+puts ${o_file}  "echo \"set  common       \${common}\"      >  .zdefine.tcl"
+puts ${o_file}  "echo \"set  config       \${config}\"      >> .zdefine.tcl"
+puts ${o_file}  "echo \"set  lib_file     \${lib_file}\"    >> .zdefine.tcl"
+puts ${o_file}  "echo \"set  input_dir    \${input_dir}\"   >> .zdefine.tcl"
+puts ${o_file}  "echo \"set  log_dir      \${log_dir}\"     >> .zdefine.tcl"
+puts ${o_file}  "echo \"set  rep_dir      \${rep_dir}\"     >> .zdefine.tcl"
+puts ${o_file}  "echo \"set  drc_rep_dir  \${drc_rep_dir}\" >> .zdefine.tcl"
+puts ${o_file}  "echo \"set  wgl_dir      \${wgl_dir}\"     >> .zdefine.tcl"
+puts ${o_file}  "echo \"set  vtb_dir      \${vtb_dir}\"     >> .zdefine.tcl"
+puts ${o_file}  "echo \"set  bin_dir      \${bin_dir}\"     >> .zdefine.tcl"
+puts ${o_file}  ""
+puts ${o_file}  "### Create : library setting ###"
+puts ${o_file}  "\${config}/zgo_comvert_lib_list.tcl tetramax  \${lib_file}  \${input_dir}/set_library.tcl"
+puts ${o_file}  ""
+puts ${o_file}  "### Report Start time ###"
+puts ${o_file}  "echo \"Start time\" > \${log_dir}/tmax_time.rep"
+puts ${o_file}  "date             >> \${log_dir}/tmax_time.rep"
+puts ${o_file}  ""
+puts ${o_file}  "### Execute : TetraMAX ###"
+puts ${o_file}  "bs -I -M \${mem} -os \"\${os}\" -source \${env_file} \\"
+puts ${o_file}  "    tmax \\"
+puts ${o_file}  "        -64  -shell -tcl \\"
+puts ${o_file}  "        \${common}/tmax_atpg.tcl"
+puts ${o_file}  ""
+puts ${o_file}  "### Report End time ###"
+puts ${o_file}  "echo \"End time\"  >> \${log_dir}/tmax_time.rep"
+puts ${o_file}  "date             >> \${log_dir}/tmax_time.rep"
+puts ${o_file}  ""
+puts ${o_file}  "### Remove file ###"
+puts ${o_file}  "\\mv .zdefine.tcl \${log_dir}/zdefine.tcl"
+puts ${o_file}  ""
+puts ${o_file}  "### Exit ###"
+puts ${o_file}  "exit 0"
+puts ${o_file}  ""
+puts ${o_file}  "#EOF"
+puts ${o_file}  ""
+#--------------------------------------#
+
+close ${o_file}
+file attributes ${batch_file} -permissions +01775
+
+
+#===============================================================================
+#  Create run batch file
+#===============================================================================
+set  batch_file	"${pat_dir}/${run_dir}/zgo_2_coverage.csh"
+set  o_file	[open ${batch_file} w]
+
+#---- Output file format --------------#
+puts ${o_file}  "#!/bin/csh -f"
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  "set common      =  \"../../../../1_common/3_tmax\""
+puts ${o_file}  "set cov_util    =  \"\${common}/coverage.tcl\""
+puts ${o_file}  "set mod_list    =  \"../../../99_setting/3_tmax/mod_lst\""
+puts ${o_file}  "set rep_file    =  \"./reports/coverage.csv\""
+puts ${o_file}  "set os          =  \"REDHATE5_0\""
+puts ${o_file}  "#==============================================================================="
+puts ${o_file}  ""
+puts ${o_file}  "bs -M 2000 -os \${os} \${cov_util} \${mod_list} \${rep_file}"
+puts ${o_file}  ""
+puts ${o_file}  "#gzip -9 ./reports/faults_*.rep"
+puts ${o_file}  ""
+#--------------------------------------#
+
+close ${o_file}
+file attributes ${batch_file} -permissions +01775
+
+
+
+#===============================================================================
+#  Exit
+#===============================================================================
+exit
+
+
+#EOF
+---log---
+set_messages -level	"expert"
+#===============================================================================
+#  Get license & report version
+#===============================================================================
+get_license -wait 50000 Test-Compression-ATPG
+report_version -full
+ J-2014.09-SP3-i150119_180123-tcl
+
+#===============================================================================
+#  setup convert to tcl format
+#===============================================================================
+set_wgl -nomacro_usage -nopad -inversion_reference omit
+set_wgl -bidi_map {0x 0-}
+set_wgl -bidi_map {1x 1-}
+set_wgl -bidi_map {xx x-}
+set_wgl -bidi_map {zx -x}
+set_wgl -bidi_map {z0 -0}
+set_wgl -bidi_map {z1 -1}
+set_wgl -bidi_map {zz -z}
+set_wgl -bidi_map {z- --}
+set_wgl -bidi_map {-x --}
+set_sim -strong
+set_bus -external_z X
+set_drc -clock -dynamic
+set_drc -disturb_clock_grouping
+set_faults -au_credit 0
+set_faults -pt_credit 0
+#  Read design
+#===============================================================================
+### Clear ###
+read_netlist -delete
+ Warning: All netlist and library module data are now deleted. (M41)
+### Library ###
+echo "### source file : ${input_dir}/set_library.tcl"
+### source file : ./input_dir/set_library.tcl
+source -echo -verbose  "${input_dir}/set_library.tcl"
+#===============================================================
+# Library setting
+#===============================================================
+read_netlist -library  /0_lib/std/*.vt
+#===============================================================================
+#  Design setting
+#===============================================================================
+### Black-Box setting ###
+if { [info exists scr_file(bbox)] } {
+    foreach tmp_scr $scr_file(bbox) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+}
+#===============================================================================
+#  Define : black box
+#===============================================================================
+set bbox_list	""
+#===============================================================================
+#  Set Black-Box
+#===============================================================================
+foreach bbox_name ${bbox_list} {
+    echo "#-- set black-box : ${bbox_name}"
+    set_build -black_box ${bbox_name}
+}
+### Define : mode_setting ###
+if { [info exists scr_file(net_connect)] } {
+    foreach tmp_scr $scr_file(net_connect) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+} else {
+    echo "### Error : Please set <net_connect>"
+    exit
+}
+#===============================================================================
+#  add_net_connections : internal node constant
+#===============================================================================
+### Format ###
+# add_net_connections <mode_vale> <instance> [-disconnect] [-buf]
+### TESSCAN1 Compress Mode ###
+#if { [regexp -nocase {compression|ts1} ${pat_cate}] } {
+echo "### compression mode ###"
+### compression mode ###
+add_net_connections tie0    cpusys/syspf/mdent/md_md0l_a	-disconnect
+
+### TESSCAN2 Internal Mode ###
+if { [regexp -nocase {internal|ts2} ${pat_cate}]} {
+    echo "### internal mode ###"
+
+}
+### TESSCAN3 IDDQ Compress Mode ###
+if { [regexp -nocase {ts3} ${pat_cate}]} {
+    echo "### internal mode ###"
+
+}
+### TESSCAN4 IDDQ Internal Mode ###
+if { [regexp -nocase {ts4} ${pat_cate}]} {
+    echo "### internal mode ###"
+
+}
+#===============================================================================
+#  DRC Mask setting
+#===============================================================================
+foreach rule_name {
+    B11
+    R37
+} {
+    echo "#-- DRC Warning : ${rule_name}"
+    set_rules ${rule_name} warning
+}
+#-- DRC Warning : B11
+#-- DRC Warning : R37
+if {[info exists drc_set(mask)]} {
+    foreach rule_name $drc_set(mask) {
+        echo "#-- DRC Mask : ${rule_name}"
+        set_rules ${rule_name} -mask
+    }
+}
+#-- DRC Mask : C11
+#-- DRC Mask : C13
+#-- DRC Mask : C14
+#-- DRC Mask : C25
+### clock Xmask
+### for transition Skewed Load ###
+if { [regexp -nocase -- {transition_sk} ${pat_class}]} {
+    echo "#-- Skewed Load Clock Xmask"
+    set_simulation -xclock_gives_xout
+}
+#===============================================================================
+#  Build model
+#===============================================================================
+if { [info exists top_module] } {
+    set_build -merge noglobal_tie_propagate
+
+    if { ![regexp -- {iddq} ${pat_class}] } { set_build -nodelete_unused_gates }
+
+    echo "#-- Build model : ${top_module}"
+    run_build_model ${top_module}
+} else {
+    echo "### Error : Please set <top_module>"
+    exit
+}
+#-- Build model : r5f523e6a
+ ------------------------------------------------------------------------------
+ Begin build model for topcut = r5f523e6a ...
+ ------------------------------------------------------------------------------
+ Begin flattening of 222514 instantiated modules, CPU_time=0.10 sec, Memory=32MB...
+ Flattened 100000 instantiated modules, CPU_time=0.45 sec, Memory=78MB.
+ Flattened 200000 instantiated modules, CPU_time=1.28 sec, Memory=133MB.
+ Buffers eliminated: 57018, pins lost: 0
+ Inverters eliminated: 39671, pins lost: 0
+ Primitives eliminated due to cascaded gate structures: 2688, pins lost: 0
+ Latch primitives remodeled as buffers: 1, pins lost: 0
+ DFF primitives remodeled as DLAT: 184, pins lost: 0
+ There were 99377 primitives and 92 faultable pins removed during model optimizations
+ Fanout-free region identification completed: #regions=140176, CPU time=0.04 sec.
+ Gate allocation completed: #primitives=388221, CPU_time=0.07 sec, freed=115MB
+ Number common input primitives=7547
+ Reorder_rank_list completed: CPU_time=0.01 sec
+ Initial ranking unsuccessful, feedback analysis performed on 29258 unranked gates.
+ Gate re-allocation completed: #blocks=2, CPU_time=0.07 sec, freed=20MB
+ Ranking completed: #ranked_gates=351445, #feedback_paths=18, CPU time=0.13 sec.
+ Warning: Rule B6 (undriven module inout pin) was violated 29 times.
+ Warning: Rule B7 (undriven module output pin) was violated 11104 times.
+ Warning: Rule B8 (unconnected module input pin) was violated 8938 times.
+ Warning: Rule B9 (undriven module internal net) was violated 1140 times.
+ Warning: Rule B10 (unconnected module internal net) was violated 11732 times.
+ Warning: Rule B13 (undriven instance inout pin) was violated 21 times.
+ Warning: Rule B22 (dropped design view) was violated 24 times.
+ Warning: Rule B23 (feedback path) was violated 18 times.
+ Build memory summary: peak=252MB, final=171MB, bytes/primitive=44
+ Build memory usage: primitives=9.7%, instances=18.5%, globals=69.2%, others=2.6%
+ End build model: #primitives=388221, CPU_time=2.83 sec, Memory=171MB
+ ------------------------------------------------------------------------------
+ Begin learning analyses...
+ Warning: 42 faults on bidi connections were nofaulted. (M28)
+ Begin common input learning...
+ Learned DLAT/DFF equivalences: #equivalences=16, CPU time=0.01 sec.
+ Learned tied gates: #AND=4 #NAND=1 #OR=1 #NOR=1
+ Learned gate types: #BUF=1822 #INV=583
+ Learned relations: #equivalence=10037 (classes=3984)
+ Common input analysis completed: CPU time=0.07 sec.
+ Begin ATPG equivalence analysis: #sim_passes=32, #max_test_passes=5000 ...
+ Random simulation results: #pos_ties=24397/16348, #pos_equiv=211381 (#groups=50897), CPU time=0.31 sec
+ ATPG learn analysis aborted after 5000 test generation analyses.
+ ATPG equivalence learning completed: #ties=3, #equiv=257, #abort=77/1758, CPU time=0.98 sec.
+ Implication learning completed: #learned implications=388221, #learned_tied=2, CPU time=0.71 sec.
+ Tied analysis completed: #tied_gates=27328, #blocked_gates=3399/0, #blocked_inputs=3932
+ End learning analyses, total learning CPU time=1.80 sec.
+ ------------------------------------------------------------------------------
+#===============================================================================
+#  ATPG Setting
+#===============================================================================
+### Clock / Reset ###
+if { [info exists scr_file(clock_reset)] } {
+    foreach tmp_scr $scr_file(clock_reset) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+} else {
+    echo "### Error : Please set <clock_reset>"
+    exit
+}
+### source file : ../../99_setting/3_tmax/define_clock_reset.tcl
+#===============================================================================
+#  Clock & Reset setting
+#===============================================================================
+### Format ###
+# add_clocks <off_state_val> <port_name>
+### ScanClock ###
+add_clocks  0  "P27"
+### ScanReset ###
+add_clocks  0  "P31"
+### Port Mask ###
+remove_pi_constraints -all
+remove_po_masks -all
+if { [info exists scr_file(port_mask)] } {
+    foreach tmp_scr $scr_file(port_mask) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+}
+### source file : ../../99_setting/3_tmax/define_port_mask.tcl
+#===============================================================================
+#  Port mask : Input 
+#===============================================================================
+add_pi_constraints 1  RES
+#===============================================================================
+#  Port mask : Output
+#===============================================================================
+add_po_masks	-all
+add_pi_constraints Z {                 P14 P15 P16 P17 }
+add_pi_constraints Z {                     P35     P37 }
+add_pi_constraints Z {     PB1			       }
+add_pi_constraints Z { 		       PC4 PC5 PC6 PC7 }
+add_pi_constraints Z { PH0 PH1 PH2 PH3 }
+add_pi_constraints Z { AIN0 AIN1 AIN2 AIN3 AIN4 AIN5   }
+add_pi_constraints Z { AIN6 AIN7 AIN8 AIN9 AIN10 AIN11 }
+add_pi_constraints Z { VCL_0 VCL_1 VCC0 VCC1           }
+add_pi_constraints Z { VSS0 VSS1             	       }
+add_pi_constraints Z { EVCC0 EVSS0 EVCC1 EVSS1         }
+add_pi_constraints Z { AVCC_0 AVCC_1 AVSS_0 AVSS_1     }
+add_pi_constraints Z { AVCC_2 AVCC_3 AVSS_2 AVSS_3     }
+#===============================================================================
+#  Port mask : Output
+#===============================================================================
+add_po_masks	-all
+### add_cell_constraint ###
+if { [info exists scr_file(cell_const)] } {
+    foreach tmp_scr $scr_file(cell_const) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+}
+### source file : ../../99_setting/3_tmax/define_cell_constraint.tcl
+#===============================================================================
+#  cell constraint setting
+#===============================================================================
+#### Format ###
+#-- add_cell_constraints 1  xxx/xxx/xxx
+#-- add_cell_constraints 0  yyy/yyy/yyy
+### for transition ###
+if { [regexp -nocase -- {transition} ${pat_class}]} {
+    echo "#-- Crate fault list for Transition"
+    add_slow_bidi -all
+    set_delay -common_launch_capture_clock
+    set_drc -noshadow
+}
+### for transition false path setting ###
+if { [info exists file_path(sdc_file)] } {
+    set_sdc -setup -hold
+    foreach tmp_file $file_path(sdc_file) {
+	read_sdc -echo ${tmp_file}
+    }
+}
+ set_sdc -hold is default starting in I-2013.12.
+
+Reading SDC version 2.0...
+#===============================================================================
+#  Slow(false) Path
+#===============================================================================
+#set_false_path -setup -through [get_pins #{cspf/mc200/cpu/HLTST cspf/mc200/mod/SELTAF cspf/mc200/cibc/SELTAF}] #-to [get_pins {cspf/mc200/cibc/moni/scan_moni_reg/DATA}]
+ End read_sdc: #false_paths:0 #multicycle paths:0 #disable_timing:0 #clk_groups:0
+               #clks:0 #generated clks:0 #Case Stmt:0
+#===============================================================================
+#  DRC
+#===============================================================================
+##set_drc -nodslave_remodel ##20121101
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+ set_drc -nodslave_remodel
+} else {
+ set_drc -dslave
+}
+# set_drc -noreclassify_invalid_dslaves
+set_drc -noshadow
+set_drc -store_setup
+set_drc -clock -any
+### SET_DRC ###
+if { [info exists file_path(spf_file)] } {
+    set_drc $file_path(spf_file)
+} else {
+    echo "### Error : Please set <spf_file>"
+    exit
+}
+if { ![regexp -- {convert-t2s} ${pat_class}] } {
+ # add hidden option for Pseudo Error (S32).  2013.04.19 #
+ set_drc -enhanced_stability_analysis
+ # ---------------------------------------------------- #
+}
+### Run DRC ###
+run_drc
+ ------------------------------------------------------------------------------
+ Begin scan design rules checking...
+ ------------------------------------------------------------------------------
+ Begin reading test protocol file ../../99_setting/spf/r5f523e6a_compression_stuck_at.spf...
+ End parsing STIL file ../../99_setting/spf/r5f523e6a_compression_stuck_at.spf with 0 errors.
+ Test protocol file reading completed, CPU time=0.09 sec.
+ ------------------------------------------------------------------------------
+ Begin Bus/Wire contention ability checking...
+ Bus summary: #bus_gates=54, #bidi=52, #weak=0, #pull=0, #keepers=0
+    Contention status: #pass=2, #bidi=52, #fail=0, #abort=0, #ignored=0, #not_analyzed=0
+    Z-state status   : #pass=0, #bidi=52, #fail=2, #abort=0, #ignored=0, #not_analyzed=0
+ Warning: Rule Z2 (bus capable of holding Z state) was violated 2 times.
+ Bus rules ATPG effort: #atpg_calls=2 (pass=0, fail=2, abort=0), #equiv_usages=0
+ Bus/Wire contention ability checking completed, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ Begin simulating test protocol procedures...
+ Nonscan cell constant value results: #constant0 = 333, #constant1 = 50
+ Nonscan cell load value results    : #load0 = 333, #load1 = 61
+ Test protocol simulation completed, CPU time=26.23 sec.
+ ------------------------------------------------------------------------------
+ Begin compressor chain I/O checking: #undefined_io=336 ...
+ End compressor chain output checking: #resolved=168, #ambiguous=0, #failed=0, #undefined_inputs=168
+ Begin scan chain operation checking...
+ Chain 1 successfully traced with 197 scan_cells.
+
+ Chain 168 successfully traced with 196 scan_cells.
+ Scan cells successfully passed master_observe procedure audit.
+ Scanpath extension completed: #added_scanpath_gates=842
+ Warning: Rule S19 (nonscan cell disturb) was violated 351 times.
+ Scan chain operation checking completed, CPU time=1078.00 sec.
+ ------------------------------------------------------------------------------
+ Begin clock-gating analysis...
+ 2249 ATPG controllable clock-gating cells were found
+ Clock-gating analysis completed, CPU time=0.13 sec.
+ ------------------------------------------------------------------------------
+ Begin clock rules checking...
+ Clocks successfully passed off-state check of scan cells.
+ Scan DLAT stability results: #DLAT=183, #unstable=0, #scan_tlas=1.
+ Scan DFF stability results: #DFF=33028, #unstable=0, #LE=32949, #TE=79.
+ Nonscan DLAT stability results: #DLAT=2649, #tied=74, #unstable=2437, #stable=138.
+ Nonscan DFF  stability results: #DFF=755, #tied=309, #unstable=62, #LE=363, #TE=21.
+ RAM stability results: #RAMS=96, #unstable=0, #LS=0, #LE=96, #TE=0.
+ Unstable cell clock rules checking completed, CPU time=0.00 sec.
+ C26 rule completed, CPU time=0.00 sec.
+ All clocks successfully passed capture ability check.
+ Warning: Rule C2 (unstable nonscan DFF when clocks off) was violated 62 times.
+ Warning: Rule C3 (no latch transparency when clocks off) was violated 135 times.
+ Warning: Rule C5 (LS port captured data affected by new capture) was violated 1978 times.
+ Warning: Rule C6 (TE port captured data affected by new capture) was violated 14 times.
+ Warning: Rule C8 (LS port clock path affected by new capture) was violated 554 times.
+ Warning: Rule C16 (nonscan cell port unable to capture) was violated 193 times.
+ Warning: Rule C21 (RAM port unable to capture) was violated 96 times.
+ Warning: Rule C25 (unstable cell clock input connected from multiple sources) was violated 138 times.
+ Warning: Rule C26 (clock as data different from capture clock for stable cell) was violated 206 times.
+ Clock rules ATPG effort: #atpg_calls=1606 (1003/603/0), #force_checks=0 (0), #equiv_usages=27324
+ Clock rules checking completed, CPU time=405.30 sec.
+ The following clocks were identified as groupable with clock P27 (15).
+    P36 (40)
+ Clock grouping results: #pairs=2, #groups=1, #serial_pairs=0, #disturbed_pairs=0, CPU time=0.01 sec.
+ ------------------------------------------------------------------------------
+ Begin nonscan rules checking...
+ Multi-vector gate summary: #gates_conn_to_tla=3915, #gates_conn_to_clock_po=0
+ RAM summary: #RAMS=96, #clock_unstable=0, #load_unstable=0, #read_only=96.
+ Warning: Rule S26 (no usable clock port for potential TLA) was violated 30 times.
+ Nonscan cell summary: #DFF=659  #DLAT=2650  #RAM_outs=96  tla_usage_type=X_clock_tla
+ Nonscan behavior:  #CU=193  #C0=333  #C1=50  #TLA=2408  #L1=11  #LE=155  #TE=21  #LS=138  #RAM_outs=96
+ Load disturbs   :  #CU=193  #TLA=2408  #L1=11  #LE=155  #TE=21  #LS=4  #RAM_outs=0
+ TLA behavior: #no_clock=14, #hot_clock=2372, #X_clock=22
+ Nonscan rules checking completed, CPU time=0.01 sec.
+ ------------------------------------------------------------------------------
+ Begin feedback path sensitization checking...
+ Warning: Rule X1 (sensitizable feedback path) was violated 1 times.
+ Feedback path rules checking completed for 18 loops, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ Begin compressor rules checking...
+ Warning: Rule R11 (X on chain affects observability of other chains) was violated 1552 times.
+ Warning: Rule R14 (X source propagatable to scancells) was violated 51 times.
+ Warning: Rule R15 (unblockable X source connected to scancells) was violated 9 times.
+ Compressor rules checking completed: #chains=168, #scanins=8, #scanouts=8, #shifts=198, CPU time=0.06 sec.
+ ------------------------------------------------------------------------------
+ Begin DRC dependent learning...
+ Fast-sequential depth results: control=7(386598), observe=1(352792), detect=2(295416), CPU time=0.06 sec
+ Constrain analysis completed: #constrain_gates=33546, #blocked_gates=34955, #blocked_inputs=74249
+ Capture_new analysis summary: #sources=28, #sinks=14, #gates=105
+ Fast-seq constrain analysis completed: #constrain_gates=32644, #blocked_gates=34004, #blocked_inputs=66548
+ 12 scancells have been constrained so that they cannot transition.
+ DRC dependent learning completed, CPU time=1.74 sec.
+ ------------------------------------------------------------------------------
+ Begin contention prevention rules checking...
+ Contention prevention checking completed, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ DRC Summary Report
+ ------------------------------------------------------------------------------
+ Warning: Rule S19 (nonscan cell disturb) was violated 351 times.
+ Warning: Rule S26 (no usable clock port for potential TLA) was violated 30 times.
+ Warning: Rule C2 (unstable nonscan DFF when clocks off) was violated 62 times.
+ Warning: Rule C3 (no latch transparency when clocks off) was violated 135 times.
+ Warning: Rule C5 (LS port captured data affected by new capture) was violated 1978 times.
+ Warning: Rule C6 (TE port captured data affected by new capture) was violated 14 times.
+ Warning: Rule C8 (LS port clock path affected by new capture) was violated 554 times.
+ Warning: Rule C16 (nonscan cell port unable to capture) was violated 193 times.
+ Warning: Rule C21 (RAM port unable to capture) was violated 96 times.
+ Warning: Rule C25 (unstable cell clock input connected from multiple sources) was violated 138 times.
+ Warning: Rule C26 (clock as data different from capture clock for stable cell) was violated 206 times.
+ Warning: Rule X1 (sensitizable feedback path) was violated 1 times.
+ Warning: Rule Z2 (bus capable of holding Z state) was violated 2 times.
+ Warning: Rule R11 (X on chain affects observability of other chains) was violated 1552 times.
+ Warning: Rule R14 (X source propagatable to scancells) was violated 51 times.
+ Warning: Rule R15 (unblockable X source connected to scancells) was violated 9 times.
+ There were 5372 violations that occurred during DRC process.
+ 1 potential clock groups were identified.
+ Design rules checking was successful, total CPU time=1566.85 sec.
+ ------------------------------------------------------------------------------
+### Get DRC Reports ###
+if { [info exists get_drc_rep] && [regexp -nocase {YES} ${get_drc_rep}] } {
+    if { [file exists ${drc_rep_dir}] } { file delete -force ${drc_rep_dir} }
+    file mkdir ${drc_rep_dir}
+
+    ### Get summary report ###
+    report_rule -fail     > ${drc_rep_dir}/rep_rule
+
+    ### Get Error list ###
+    set tmp_flag  "0"
+    set drc_list  ""
+    set i_file [open ${drc_rep_dir}/rep_rule r]
+
+    while { [gets ${i_file} line] > -1 } {
+	if { ${tmp_flag} == "0" } {
+	    if { [regexp -- {---} ${line}] } { set tmp_flag "1" }
+	} else {
+	    lappend drc_list [lindex ${line} 0]
+	}
+    }
+    close ${i_file}
+
+    ### Get verbose reports ###
+    foreach err_name ${drc_list} {
+	report_violations ${err_name} > ${drc_rep_dir}/rep_vio_${err_name}
+    }
+}
+if { ![regexp -- {convert-t2s} ${pat_class}] } {
+    ### Get DRC detail reports ###
+    source ${common}/replace_violation.tcl
+    replace_violation C22 > ${drc_rep_dir}/rep_vio_C22
+    replace_violation C25 > ${drc_rep_dir}/rep_vio_C25
+}
+#if { [info exists file_path(sdc_file)] } {
+report_sdc -all_path  > ${drc_rep_dir}/sdc_transition.rpt
+#}
+#===============================================================================
+#  Report scan cheains
+#===============================================================================
+report_scan_chains 
+ chain             group         length  input_id  output_id  compressor connections
+ ----------------  ------------  ------  --------  ---------  --------------------------------------
+ 1                 core_group       197     23718     352787
+
+ 168               core_group       196    270311     354114
+report_scan_chains				> ${rep_dir}/report_scan_chain_${pat_cate}_${pat_class}.rep
+report_scan_cells -all -verbose -reverse_order	> ${rep_dir}/report_scan_cells_${pat_cate}_${pat_class}.rep
+### report scan chains/cell for columbo ###
+report_scan_cells -all -verbose     > ${log_dir}/${pat_cate}_${pat_class}_scan_cells.rep
+report_scan_chains                  > ${log_dir}/${pat_cate}_${pat_class}_scan_chains.rep
+report_scan_chains -command_report  > ${log_dir}/${pat_cate}_${pat_class}_scan_commnad.rep
+report_compressors -unload -verbose > ${log_dir}/${pat_cate}_${pat_class}_scan.compressor.rep
+report_serializers -unload -verbose > ${log_dir}/${pat_cate}_${pat_class}_scan.serializer.rep
+#===============================================================================
+#  Create fault lists
+#===============================================================================
+### for stuck-at ###
+if { [regexp -- {stuck_at} ${pat_class}] } {
+    echo "#-- Crate fault list for stuck_at"
+    set_faults  -model stuck
+    set_faults  -noequiv_code
+    set_faults  -fault_coverage -atpg_effectiveness -summary verbose
+    add_faults  -all
+}
+#-- Crate fault list for stuck_at
+ 1677744 faults were added to fault list, CPU_time=0.23 sec.
+### for transition ###
+if { [regexp -- {transition} ${pat_class}] } {
+    echo "#-- Crate fault list for Transition"
+    set_fault   -model transition
+    set_delay   -launch_cycle system_clock
+    set_delay   -nopi_changes
+    set_delay   -two_clock_transition_optimization
+}
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+### change for HIKITSUGI
+    echo "#-- Crate fault list for stuck-at model"
+    set_faults  -model stuck
+    set_faults  -noequiv_code
+    set_faults  -fault_coverage -atpg_effectiveness -summary verbose
+    add_faults  -all
+}
+### for iddq ###
+if { [regexp -- {iddq} ${pat_class}] } {
+    echo "#-- Crate fault list for Stuck_at"
+    #set_faults -model iddq
+    #set_faults -noequiv_code
+    #set_iddq   -toggle
+    #set_faults -fault_coverage -atpg_effectiveness -summary verbose
+    #add_faults -all
+
+    set_faults  -model stuck
+    set_faults  -noequiv_code
+    set_faults  -fault_coverage -atpg_effectiveness -summary verbose
+    add_faults  -all
+}
+### Read Fault list ###
+if { [info exists fault_list] && ![regexp -- {^$} ${fault_list}] } {
+    echo "#-- read_faults : ${fault_list}"
+    read_faults ${fault_list} -retain_code
+} else {
+    echo "#-- add_faults -all"
+    add_faults -all
+}
+#-- add_faults -all
+ 1677744 existing faults were removed from the fault list.
+ 1677744 faults were added to fault list, CPU_time=0.22 sec.
+### report faults ###
+report_faults -summary
+     Uncollapsed Stuck Fault Summary Report
+ -----------------------------------------------
+ fault class                     code   #faults
+ ------------------------------  ----  ---------
+ Detected                         DT     289108
+   detected_by_implication        DI    (289108)
+ Possibly detected                PT          0
+ Undetectable                     UD      55339
+   undetectable-unused            UU     (18570)
+   undetectable-unobservable      UO     (14138)
+   undetectable-tied              UT     (11724)
+   undetectable-blocked           UB     (10721)
+   undetectable-redundant         UR       (186)
+ ATPG untestable                  AU      12051
+   atpg_untestable-not_detected   AN     (12051)
+ Not detected                     ND    1321246
+   not-controlled                 NC   (1321246)
+ -----------------------------------------------
+ total faults                           1677744
+ test coverage                            17.82%
+ fault coverage                           17.23%
+ ATPG effectiveness                       21.25%
+ -----------------------------------------------
+### Remove faults ###
+if { [info exists scr_file(remove_faults)] } {
+    foreach tmp_scr $scr_file(remove_faults) {
+	echo "### source file : ${tmp_scr}"
+	source -echo -verbose  "${tmp_scr}"
+    }
+}
+### source file : ../../99_setting/3_tmax/define_remove_faults.tcl
+#===============================================================================
+#  Define : Remove faults
+#===============================================================================
+### Scan logic ###
+remove_faults   "cpusys/syspf/cpg/dftc_mode_u_u_clockcntrl"
+ Fast lookup enabled for 222514 instantiated modules and 388221 gates, CPU_time=0.01 sec, Memory=5MB
+ 254 faults were removed from the fault list, CPU_time=0.01 sec.
+remove_faults   "dftc_mode_u_r5f523e6a_U_compressor_ScanCompression_mode"
+ 2076 faults were removed from the fault list, CPU_time=0.01 sec.
+remove_faults   "dftc_mode_u_r5f523e6a_U_decompressor_ScanCompression_mode"
+ 1530 faults were removed from the fault list, CPU_time=0.01 sec.
+remove_faults   "dftc_mode_u1"
+ 10 faults were removed from the fault list, CPU_time=0.00 sec.
+remove_faults   "r5f523e6a_DW_decoder_inst"
+ 4 faults were removed from the fault list, CPU_time=0.00 sec.
+remove_faults   "cpusys/dftpf/lpdft/lpttapc"
+ 8 faults were removed from the fault list, CPU_time=0.00 sec.
+remove_faults   "cpusys/dftpf/lpdft/lpttdr"
+ 1596 faults were removed from the fault list, CPU_time=0.00 sec.
+### Spare cell ###
+#remove_faults   "spare_xxx"
+### report faults ###
+report_faults -summary
+     Uncollapsed Stuck Fault Summary Report
+ -----------------------------------------------
+ fault class                     code   #faults
+ ------------------------------  ----  ---------
+ Detected                         DT     285692
+   detected_by_implication        DI    (285692)
+ Possibly detected                PT          0
+ Undetectable                     UD      53681
+   undetectable-unused            UU     (18376)
+   undetectable-unobservable      UO     (12726)
+   undetectable-tied              UT     (11688)
+   undetectable-blocked           UB     (10708)
+   undetectable-redundant         UR       (183)
+ ATPG untestable                  AU      11652
+   atpg_untestable-not_detected   AN     (11652)
+ Not detected                     ND    1321241
+   not-controlled                 NC   (1321241)
+ -----------------------------------------------
+ total faults                           1672266
+ test coverage                            17.65%
+ fault coverage                           17.08%
+ ATPG effectiveness                       20.99%
+ -----------------------------------------------
+### add_slow_path ##
+#- if { [info exists file_path(slow_path_file)] } {
+#-     foreach tmp_file $file_path(slow_path_file) {
+#- 	source -echo -verbose ${tmp_file}
+#-     }
+#- }
+#===============================================================================
+#  run atpg
+#===============================================================================
+set_messages -level expert
+### SET ATPG ###
+set_atpg -verbose
+set_atpg -resim_basic_scan_patterns auto
+set_atpg -basic_min_detects_per_pattern 2
+# set_atpg -single_load_per_pattern
+#--- atpg_merge ---#
+if { [info exists atpg_set(atpg_merge)] && [regexp {[0-9]+} $atpg_set(atpg_merge)] } {
+    echo "#-- set_atpg -merge : $atpg_set(atpg_merge)"
+    set_atpg -merge $atpg_set(atpg_merge)
+} else {
+    echo "#-- set_atpg -merge : 10"
+    set_atpg -merge 10
+}
+#-- set_atpg -merge : 2000
+#--- atpg_limit ---#
+if { [info exists atpg_set(atpg_limit)] && [regexp {[0-9]+} $atpg_set(atpg_limit)] } {
+    echo "#-- set_atpg -atpg_limit : $atpg_set(atpg_limit)"
+    set_atpg -abort_limit $atpg_set(atpg_limit)
+} else {
+    echo "#-- set_atpg -atpg_limit : 10"
+    set_atpg -abort_limit 10
+}
+#-- set_atpg -atpg_limit : 2000
+#--- cap_cycle ---#
+if { [info exists atpg_set(cap_cycle)] && $atpg_set(cap_cycle) >= 2 && $atpg_set(cap_cycle) <= 10 } {
+    echo "#-- set_atpg -cap_cycle : $atpg_set(cap_cycle)"
+    set_atpg -capture_cycle $atpg_set(cap_cycle)
+}
+#-- set_atpg -cap_cycle : 2
+#--- full_seq_atpg ---#
+# set_atpg -full_seq_atpg
+#--- patterns ---#
+if { [info exists atpg_set(pat_limit)] && [regexp -- {[0-9]+} $atpg_set(pat_limit)] } {
+    echo "#-- set_atpg -patterns : $atpg_set(pat_limit)"
+    set_atpg -patterns $atpg_set(pat_limit)
+}
+#--- coverage ---#
+if { [info exists atpg_set(cov_limit)] && ![regexp -- {--} $atpg_set(cov_limit)] } {
+    echo "#-- set_atpg -coverage : $atpg_set(cov_limit)"
+    set_atpg -coverage $atpg_set(cov_limit)
+}
+#-- set_atpg -coverage : 100.00
+### date ###
+system date
+if { ![regexp -- {convert-t2s} ${pat_class}] } {
+ ### run atpg basic_scan_only ###
+ run_atpg -auto_compression
+ run_atpg fast_sequential_only
+}
+ Warning: Merging enabled without dynamic clock grouping for multiple clocks. (M494)
+ 
+ ***********************************************************
+ *  NOTICE:  The following DRC violations were previously  *
+ *  encountered. The presence of these violations is an    *
+ *  indicator that it is possible that the ATPG patterns   *
+ *  created during this process may fail in simulation.    *
+ *                                                         *
+ *  Rules:  C8                                             *
+ ***********************************************************
+ ATPG performed for stuck fault model using internal pattern source.
+ ---------------------------------------------------------------------
+ #patterns  #patterns     #faults     #ATPG faults  test      process
+ simulated  eff/total  detect/active  red/au/abort  coverage  CPU time
+ ---------  ---------  -------------  ------------  --------  --------
+ Begin deterministic ATPG: #uncollapsed_faults=1322496, abort_limit=2000...
+ Patn  1: #merges=0/1997(2%)  #failed_merges=0/723  #faults=697394  #det=120961  CPU=2.41 sec  clocks= P27
+
+  Fast-seq merge results: #merges=0    #failed_merges=9    CPU=102.38 sec
+ Warning: 325 faults were unsuccessfully detected. (M136)
+ Warning: 10613 scancells were not observable due to compressor effects during ATPG process. (M598)
+ Warning: 282 faults aborted due to failure to map care bits to load compressor. (M139)
+ Compressor unload adjustment completed: #patterns_adjusted=18, #patterns_added=1, CPU time=0.00 sec.
+ 
+     Uncollapsed Stuck Fault Summary Report
+ -----------------------------------------------
+ fault class                     code   #faults
+ ------------------------------  ----  ---------
+ Detected                         DT    1585758
+   detected_by_simulation         DS   (1300066)
+   detected_by_implication        DI    (285692)
+ Possibly detected                PT        445
+   atpg_untestable-pos_detected   AP       (405)
+   not_analyzed-pos_detected      NP        (40)
+ Undetectable                     UD      62272
+   undetectable-unused            UU     (18376)
+   undetectable-unobservable      UO     (12726)
+   undetectable-tied              UT     (11688)
+   undetectable-blocked           UB     (10708)
+   undetectable-redundant         UR      (8774)
+ ATPG untestable                  AU      14391
+   atpg_untestable-not_detected   AN     (14391)
+ Not detected                     ND       9400
+   not-controlled                 NC       (188)
+   not-observed                   NO      (9212)
+ -----------------------------------------------
+ total faults                           1672266
+ test coverage                            98.49%
+ fault coverage                           94.83%
+ ATPG effectiveness                       99.44%
+ -----------------------------------------------
+            Pattern Summary Report
+ -----------------------------------------------
+ #internal patterns                        3432
+     #basic_scan patterns                  2992
+     #fast_sequential patterns              440
+ -----------------------------------------------
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+ ################################################################################
+ # TDF -> SAF FSIM COMP ( Scan Compression )
+ ################################################################################
+ # remove_faults -all
+ # set_faults -mode stuck
+ # add_faults -all
+
+ set_patterns -external ./binary/compression_transition
+
+ # ------ run sim ------
+ set_simulation -measure pat
+ # set_simulation -xclock_gives_xout
+ run_simulation
+ 
+ # ------ run fault sim ------
+ run_fault_sim
+ 
+ ################################################################################
+}
+### date ###
+system date
+#===============================================================================
+#  Output reports
+#===============================================================================
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+ report_summaries primitives faults patterns memory	> ${rep_dir}/tmax_${pat_cate}_${pat_class}.fsim.rep
+} else {
+ report_summaries primitives faults patterns memory	> ${rep_dir}/tmax_${pat_cate}_${pat_class}.rep
+}
+report_faults -unsuccessful				> ${rep_dir}/tmax_fault_unsuccessful_${pat_cate}_${pat_class}.rep
+if { ![regexp -- {convert-t2s} ${pat_class}] } {
+ ### report faults ###
+ report_faults -class DR  > ${rep_dir}/faults_DR.rep
+ report_faults -class DS  > ${rep_dir}/faults_DS.rep
+ report_faults -class DI  > ${rep_dir}/faults_DI.rep
+ report_faults -class AP  > ${rep_dir}/faults_AP.rep
+ report_faults -class NP  > ${rep_dir}/faults_NP.rep
+ report_faults -class UU  > ${rep_dir}/faults_UU.rep
+ report_faults -class UO  > ${rep_dir}/faults_UO.rep
+ report_faults -class UT  > ${rep_dir}/faults_UT.rep
+ report_faults -class UB  > ${rep_dir}/faults_UB.rep
+ report_faults -class UR  > ${rep_dir}/faults_UR.rep
+ report_faults -class AN  > ${rep_dir}/faults_AN.rep
+ report_faults -class AX  > ${rep_dir}/faults_AX.rep
+ report_faults -class NC  > ${rep_dir}/faults_NC.rep
+ report_faults -class NO  > ${rep_dir}/faults_NO.rep
+}
+#===============================================================================
+#  Write faults uncollapsed
+#===============================================================================
+if { [regexp -- {convert-t2s} ${pat_class}] } {
+ set_faults -noequiv_code
+ write_faults ${rep_dir}/faults.${pat_class}.fsim -all -uncollapsed -replace
+} else {
+ write_faults ${rep_dir}/faults.${pat_class} -all -uncollapsed -replace
+
+ #===============================================================================
+ #  Output patterns
+ #===============================================================================
+ ### set_wgl for compression pattern  ###
+ if {[info exists pat_cate] && [regexp -nocase {compression|ts1|ts3} ${pat_cate}]} {
+     echo "#-- set_wgl : merge_compressed_chains"
+     set_wgl -merge_compressed_chains
+ }
+ 
+ ### output WGL(for tester) ###
+ write_patterns ${wgl_dir}/${pat_cate}_${pat_class}.wgl -format wgl -replace -split 900
+ 
+ 
+ ### outout verilog (for parallel|serial simulation) ###
+ if {[info exists create_pat(parallel)] && [regexp -nocase {YES} $create_pat(parallel)]} {
+     if {[regexp -nocase {compression|ts1|ts3} ${pat_cate}]} {
+	write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_para    -format stil -replace -parallel -nounified_stil_flow -cellname type
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri    -format stil -serial  -replace  -cellname type
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri5   -format stil -serial  -replace  -cellname type -last 5
+     }
+ 
+     if {[regexp -nocase {internal|ts2|ts4} ${pat_cate}]} {
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_para    -format stil -replace -parallel -nounified_stil_flow -cellname type
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri    -format stil -serial  -replace  -cellname type
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri5   -format stil -serial  -replace  -cellname type -last 5
+         write_patterns ${vtb_dir}/${pat_cate}_${pat_class}_seri200 -format stil -serial  -replace  -cellname type -last 200
+     }
+ }
+ 
+ ### outout Binary ###
+ if {[info exists create_pat(binary)] && [regexp -nocase {YES} $create_pat(binary)]} {
+     write_patterns ${bin_dir}/${pat_cate}_${pat_class} -format binary -replace -compress gzip
+ }
+}
+ Write faults completed: 1672266 faults were written into file "./reports/faults.stuck_at".
+#-- set_wgl : merge_compressed_chains
+ Serializing patterns...
+ Completed serializing patterns...
+ End writing file 'compression_stuck_at_0.wgl' with 901 patterns, File_size = 4433610, CPU_time = 1.3 sec.
+ Serializing patterns...
+ Completed serializing patterns...
+ End writing file 'compression_stuck_at_1.wgl' with 901 patterns, File_size = 4434511, CPU_time = 1.4 sec.
+ Serializing patterns...
+ Completed serializing patterns...
+ End writing file 'compression_stuck_at_2.wgl' with 901 patterns, File_size = 4434879, CPU_time = 1.4 sec.
+ Serializing patterns...
+ Completed serializing patterns...
+ End writing file 'compression_stuck_at_3.wgl' with 732 patterns, File_size = 3772093, CPU_time = 1.3 sec.
+ Warning: STIL parallel compressor patterns are usable only with VerilogDPV and MAX TestBench simulations. (M401)
+ Warning: As of the K-2015.06 version of TetraMAX, the default on write_patterns -format stil|stil99 will change to -nostildpv. The VerilogDPV testbench will be obsolete in K-2015.06 or later.
+ Patterns written reference 10853 V statements, generating 50243 test cycles
+ End writing file 'compression_stuck_at_para' with 3432 patterns, File_size = 263379568, CPU_time = 36.8 sec.
+ Warning: As of the K-2015.06 version of TetraMAX, the default on write_patterns -format stil|stil99 will change to -nostildpv. The VerilogDPV testbench will be obsolete in K-2015.06 or later.
+ Serializing patterns...
+ Completed serializing patterns...
+ Patterns written reference 17719 V statements, generating 5494981 test cycles
+ End writing file 'compression_stuck_at_seri' with 3432 patterns, File_size = 14912540, CPU_time = 2.2 sec.
+ Warning: As of the K-2015.06 version of TetraMAX, the default on write_patterns -format stil|stil99 will change to -nostildpv. The VerilogDPV testbench will be obsolete in K-2015.06 or later.
+ Serializing patterns...
+ Completed serializing patterns...
+ Patterns written reference 59 V statements, generating 52121 test cycles
+ End writing file 'compression_stuck_at_seri5' with 7 patterns, File_size = 3074849, CPU_time = 0.1 sec.
+#===============================================================================
+#  Quit
+#===============================================================================
+quit
